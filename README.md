@@ -1,4 +1,4 @@
-# LoRA ReScripts UI V2.0.0
+# lulynx-trainer-ui UI V2.0.0
 
 这是 SD-reScripts 的**新前端**，对应目录为 `plugin/lora-scripts-ui-main/ui/`。
 仅适配重置版秋叶丹炉：https://github.com/WhitecrowAurora/lora-rescripts 请自行下载
