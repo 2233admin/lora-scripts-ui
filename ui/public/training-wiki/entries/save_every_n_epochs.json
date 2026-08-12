@@ -2,8 +2,17 @@
   "key": "save_every_n_epochs",
   "title": "保存间隔",
   "category": "保存 / 间隔",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora", "finetune", "flux-lora"],
-  "layers": ["输出层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora",
+    "finetune",
+    "flux-lora"
+  ],
+  "layers": [
+    "输出层"
+  ],
   "standard": {
     "summary": "每隔多少个 epoch 保存一次 checkpoint。save_every_n_steps 是按步数保存的替代方案。",
     "effect": "save_every_n_epochs=1 每 epoch 保存一次。=0 禁用按 epoch 保存。两者可以同时使用。",
@@ -17,5 +26,11 @@
     "tradeoffs": "checkpoint_keep_last 限制保留最近 N 个 checkpoint，自动删除旧的。save_model_as 控制保存格式（safetensors/ckpt/pt）。",
     "codePath": "training_loop.py:save_model() → safetensors.torch.save_file / torch.save"
   },
-  "relatedConfigs": ["save_every_n_steps", "checkpoint_keep_last", "save_model_as", "save_precision", "mem_efficient_save"]
+  "relatedConfigs": [
+    "save_every_n_steps",
+    "checkpoint_keep_last",
+    "save_model_as",
+    "save_precision",
+    "mem_efficient_save"
+  ]
 }

@@ -2,8 +2,16 @@
   "key": "vortex_enabled",
   "title": "Vortex Memory (显存涡流管理)",
   "category": "显存优化 / 实验性",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora", "finetune"],
-  "layers": ["显存层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora",
+    "finetune"
+  ],
+  "layers": [
+    "显存层"
+  ],
   "standard": {
     "summary": "Vortex 是 R&D 级的显存管理策略，通过智能调度 GPU 和 CPU 之间的数据流动来优化显存利用率。",
     "effect": "vortex_strategy 控制调度策略（standard）。vortex_profile 控制激进度（standard/low_vram/extreme）。",
@@ -17,5 +25,8 @@
     "tradeoffs": "vortex_profile 选择决定显存/速度的权衡。",
     "codePath": "core/vortex/ → memory usage pattern analysis → dynamic residency scheduling"
   },
-  "relatedConfigs": ["vortex_strategy", "vortex_profile"]
+  "relatedConfigs": [
+    "vortex_strategy",
+    "vortex_profile"
+  ]
 }

@@ -1,97 +1,10 @@
-const JSON_HEADERS = {
-  'Content-Type': 'application/json',
-};
-
-function formatApiMessage(value) {
-  if (value == null) return '';
-  if (typeof value === 'string') return value;
-  if (typeof value !== 'object') return String(value);
-
-  if (Array.isArray(value)) {
-    return value.map(formatApiMessage).filter(Boolean).join('; ');
-  }
-
-  for (const key of ['message', 'detail', 'error', 'reason']) {
-    const text = formatApiMessage(value[key]);
-    if (text) return text;
-  }
-
-  if (Array.isArray(value.errors) && value.errors.length) {
-    const text = value.errors.map(formatApiMessage).filter(Boolean).join('; ');
-    if (text) return text;
-  }
-  if (Array.isArray(value.issues) && value.issues.length) {
-    const text = value.issues.map(formatApiMessage).filter(Boolean).join('; ');
-    if (text) return text;
-  }
-
-  try {
-    return JSON.stringify(value);
-  } catch (_error) {
-    return String(value);
-  }
-}
-
-async function request(path, options = {}) {
-  let response;
-  try {
-    response = await fetch(path, {
-      headers: options.body ? JSON_HEADERS : undefined,
-      ...options,
-    });
-  } catch (networkError) {
-    throw new Error('无法连接到后端服务，请确认后端 (gui.py) 已启动。');
-  }
-
-  let payload = null;
-  try {
-    payload = await response.json();
-  } catch (error) {
-    if (response.status === 502) {
-      throw new Error('后端服务未启动 (127.0.0.1:28000)，请先通过启动脚本或 gui.py 启动后端。');
-    }
-    throw new Error(`接口返回的 JSON 无效：${path}`);
-  }
-
-  if (!response.ok) {
-    throw new Error(formatApiMessage(payload?.detail || payload?.message || payload) || `请求失败：${response.status}`);
-  }
-
-  return payload;
-}
-
-function postJson(path, data) {
-  return request(path, {
-    method: 'POST',
-    body: JSON.stringify(data),
-  });
-}
-
-/**
- * 仅同步本地历史文件 (./task_history.json)。
- * 用于在调用后端真删除接口成功后，把本地缓存里同 ID 的条目一并清掉，
- * 避免下次启动时本地历史文件把已删任务又拉回来。
- * 失败不抛异常（本地缓存是兜底，后端才是权威）。
- */
-async function syncLocalTaskHistoryRemoval(taskId) {
-  const normalizedId = String(taskId || '');
-  if (!normalizedId) return;
-  try {
-    const history = await request('/api/local/task_history');
-    const tasks = Array.isArray(history?.data?.tasks) ? history.data.tasks : [];
-    const filtered = tasks.filter((task) => String(task?.id || task?.task_id || '') !== normalizedId);
-    if (filtered.length !== tasks.length) {
-      await postJson('/api/local/task_history', { tasks: filtered });
-    }
-  } catch (_e) { /* 本地缓存同步失败不影响主流程 */ }
-}
-
-/** 清空本地任务历史文件（与 DELETE /api/tasks 配合使用）。失败静默。 */
-async function clearLocalTaskHistoryFile() {
-  try {
-    await request('/api/local/task_history', { method: 'DELETE' });
-  } catch (_e) { /* ignore */ }
-}
+import {
+  clearLocalTaskHistoryFile,
+  postJson,
+  rawRequest,
+  request,
+  syncLocalTaskHistoryRemoval,
+} from './apiTransport.js';
 
 export const api = {
   getGraphicCards() {
@@ -108,6 +21,30 @@ export const api = {
 
   getConfigOptions() {
     return request('/api/config/options');
+  },
+
+  getExecutionProfiles() {
+    return request('/api/train/execution-profiles');
+  },
+
+  previewWeightComposer(config, points = 65) {
+    return postJson('/api/train/weight-composer/preview', { config, points });
+  },
+
+  previewTrainingIntentProfile(config, intent, explicitFields = []) {
+    return postJson('/api/train/training-intent/preview', { config, intent, explicit_fields: explicitFields });
+  },
+
+  startSampleDifficultyScoring(payload) {
+    return postJson('/api/train/sample-difficulty/score', payload);
+  },
+
+  getSampleDifficultyScoring(jobId) {
+    return request(`/api/train/sample-difficulty/score/${encodeURIComponent(jobId)}`);
+  },
+
+  cancelSampleDifficultyScoring(jobId) {
+    return postJson(`/api/train/sample-difficulty/score/${encodeURIComponent(jobId)}/cancel`, {});
   },
 
   getTasks() {
@@ -149,10 +86,60 @@ export const api = {
     return syncLocalTaskHistoryRemoval(taskId);
   },
 
-  pickFile(type, context = '') {
+  async pickFile(type, context = '') {
+    // 非阻塞版本：/pick_file_async 立即返回 session_id，对话框在后台线程打开，
+    // 前端轮询 /pick_file_result。后端信封：{status:'success',data} / {status:'error',message}
+    //
+    // 轮询走 rawRequest（不经 globalConcurrencyLimit）：picker 的长轮询不能和页面
+    // 健康检查/任务轮询抢同一批并发槽，否则冷启动 + --dev reload 期间会堵死浏览器
+    // 连接池，连 /ui/ 静态资源都 Stalled 一两分钟。
     const params = [`picker_type=${encodeURIComponent(type)}`];
     if (context) params.push(`context=${encodeURIComponent(context)}`);
-    return request(`/api/pick_file?${params.join('&')}`);
+
+    // 1. 启动对话框（20s 超时，reload 期间也不无限挂起）
+    const initResp = await rawRequest(`/api/pick_file_async?${params.join('&')}`, { timeoutMs: 20000 });
+    if (!initResp || initResp.status !== 'success') {
+      throw new Error(initResp?.message || '启动文件选择器失败');
+    }
+
+    const sessionId = initResp.data?.session_id;
+    if (!sessionId) {
+      throw new Error('未收到有效的 session_id');
+    }
+
+    // 2. 轮询结果：间隔从 600ms 退避到 1500ms 封顶，最多等 5 分钟。
+    //    单次轮询失败（后端 reload/超时）不致命，继续重试直到总 deadline。
+    const deadline = Date.now() + 5 * 60 * 1000;
+    let interval = 600;
+    while (Date.now() < deadline) {
+      await new Promise(resolve => setTimeout(resolve, interval));
+      if (interval < 1500) interval += 150;
+
+      let resultResp;
+      try {
+        resultResp = await rawRequest(
+          `/api/pick_file_result?session_id=${encodeURIComponent(sessionId)}`,
+          { timeoutMs: 20000 },
+        );
+      } catch (_err) {
+        continue; // reload/网络抖动：重试而非直接失败
+      }
+
+      if (!resultResp || resultResp.status === 'error') {
+        throw new Error(resultResp?.message || '获取文件选择结果失败');
+      }
+
+      const data = resultResp.data || {};
+      if (data.status === 'completed') {
+        // 返回结构与旧版 /pick_file 一致：{status:'success', data:{path}}
+        return {
+          status: 'success',
+          data: data.result || { path: '' },
+        };
+      }
+      // data.status === 'opening' 继续等待
+    }
+    throw new Error('文件选择超时，请重试');
   },
 
   getBuiltinPicker(type, context = '') {
@@ -161,9 +148,103 @@ export const api = {
     return request(`/api/builtin_picker?${params.join('&')}`);
   },
 
+  /**
+   * 扫描 Anima 模型根目录，智能识别 DiT/VAE/Qwen3/T5 等组件路径。
+   * 通过 safetensors 二进制头 + 文件名 pattern 双重检测，不加载权重。
+   * @param {string} folderPath  本地文件夹绝对路径
+   */
+  scanAnimaFolder(folderPath) {
+    return request(`/api/scan_anima_folder?folder_path=${encodeURIComponent(folderPath)}`, { method: 'POST' });
+  },
 
+  /**
+   * 读取 LoRA/safetensors 文件的 __metadata__ 头部，不加载权重张量。
+   * @param {string} loraPath  本地 .safetensors / .pt / .ckpt 文件绝对路径
+   */
+  readLoraMetadata(loraPath) {
+    return postJson('/api/read_lora_metadata', { path: loraPath });
+  },
+
+  /**
+   * 检查路径是否存在于文件系统（用于路径字段存在性验证）。
+   * @param {string} path  本地绝对路径
+   * @returns {{ exists: boolean, type: 'file'|'dir'|'missing' }}
+   */
+  checkPathExists(path) {
+    return postJson('/api/check_path_exists', { path });
+  },
+
+  /**
+   * 在训练启动前检查输出目录是否已有同名 LoRA 文件（冲突检测）。
+   * @param {string} outputDir   输出目录绝对路径
+   * @param {string} outputName  LoRA 输出名（不含扩展名）
+   * @returns {{ conflict: boolean, existing_files: string[] }}
+   */
+  checkOutputConflict(outputDir, outputName) {
+    return postJson('/api/check_output_conflict', { output_dir: outputDir, output_name: outputName });
+  },
+
+  /**
+   * 启动数据集质量扫描（异步后台任务）。
+   * @param {string} datasetDir  数据集目录绝对路径
+   * @returns {{ task_id: string, status: 'running' }}
+   */
+  startDatasetQualityScan(datasetDir) {
+    return postJson('/api/dataset/start_quality_scan', { dataset_dir: datasetDir, recursive: true });
+  },
+
+  /**
+   * 查询数据集质量扫描任务状态 + 结果。
+   * @param {string} taskId  任务 ID
+   * @returns {{ status: 'running'|'completed'|'failed', progress: number, total: number, result: object }}
+   */
+  getDatasetQualityStatus(taskId) {
+    return getJson(`/api/dataset/quality_scan_status/${taskId}`);
+  },
+
+  probeSemanticSegmentation(params = {}) {
+    return postJson('/api/dataset/semantic-segmentation/probe', params);
+  },
+
+  previewSemanticSegmentation(params = {}) {
+    return postJson('/api/dataset/semantic-segmentation/preview', params);
+  },
+
+  buildSemanticSegmentationCache(params = {}) {
+    return postJson('/api/dataset/semantic-segmentation/build-cache', params);
+  },
+  async listResourceCatalog() {
+    const response = await request('/api/dataset/semantic-segmentation/providers');
+    if (response?.status === 'error') throw new Error(response.message || '资源目录加载失败');
+    return response;
+  },
+
+  async downloadResourceFromCatalog(payload = {}) {
+    const response = await postJson('/api/dataset/semantic-segmentation/download', payload);
+    if (response?.status === 'error') throw new Error(response.message || '资源下载失败');
+    const result = response?.data || response;
+    if (!['completed', 'reused'].includes(result?.status)) throw new Error(result?.error || '资源下载未完成');
+    return response;
+  },
+
+  async listLocalResources(opts = {}) {
+    const response = await postJson('/api/dataset/semantic-segmentation/local-scan', {
+      limit: opts.limit ?? 1000,
+      include_hash: Boolean(opts.include_hash),
+      roots: opts.roots ?? [],
+    });
+    if (response?.status === 'error') throw new Error(response.message || '本地资源扫描失败');
+    return response;
+  },
   saveConfig(name, config) {
     return postJson('/api/saved_configs/save', { name, config });
+  },
+
+  /** Kohya TOML / ai-toolkit YAML → lulynx flat fields + migration notes */
+  importExternalConfig(file) {
+    const form = new FormData();
+    form.append('file', file, file?.name || 'config.bin');
+    return request('/api/import_external_config', { method: 'POST', body: form });
   },
 
   listSavedConfigs() {
@@ -196,7 +277,20 @@ export const api = {
   },
 
   runPreflight(config) {
-    return postJson('/api/train/preflight', config);
+    return postJson('/api/train/preflight', {
+      allow_attention_fallback: true,
+      ...config,
+    });
+  },
+
+  applyBubbleAdvisorPatch(config, report, options = {}) {
+    return postJson('/api/train/bubble-advisor/apply', {
+      config: config || {},
+      report: report || {},
+      embed_ledger: true,
+      keep_bubble_controller_enabled: true,
+      ...options,
+    });
   },
 
   runPcieTransferBenchmark(params = {}) {
@@ -217,6 +311,26 @@ export const api = {
 
   runInterrogate(params) {
     return postJson('/api/interrogate', params);
+  },
+
+  checkInterrogateHealth(params) {
+    return postJson('/api/interrogate/health', params);
+  },
+
+  getLlmTaggerChannels() {
+    return request('/api/interrogate/llm_channels');
+  },
+
+  saveLlmTaggerChannel(params) {
+    return postJson('/api/interrogate/llm_channels', params);
+  },
+
+  deleteLlmTaggerChannel(channelId) {
+    return request(`/api/interrogate/llm_channels/${encodeURIComponent(channelId)}`, { method: 'DELETE' });
+  },
+
+  clearLlmTaggerChannelKeys(channelId) {
+    return postJson(`/api/interrogate/llm_channels/${encodeURIComponent(channelId)}/clear_keys`, {});
   },
 
   getDatasetTags(dir) {
@@ -253,8 +367,18 @@ export const api = {
     return postJson('/api/system/open_advanced_monitor', {});
   },
 
+  getWebuiErrors({ limit = 100, kind = '', q = '' } = {}) {
+    const params = [`limit=${encodeURIComponent(limit)}`];
+    if (kind && kind !== 'all') params.push(`kind=${encodeURIComponent(kind)}`);
+    if (q) params.push(`q=${encodeURIComponent(q)}`);
+    return request(`/api/system/webui_errors?${params.join('&')}`);
+  },
+
   runTraining(config) {
-    return postJson('/api/run', config);
+    return postJson('/api/run', {
+      allow_attention_fallback: true,
+      ...config,
+    });
   },
 
   startLabDistiller(config) {
@@ -307,6 +431,11 @@ export const api = {
     return request('/api/tageditor_status');
   },
 
+  getTagTranslationTemplates() { return request('/tags/translation/templates'); },
+  startTagTranslation(params = {}) { return postJson('/tags/translation/start', params || {}); },
+  stopTagTranslation() { return postJson('/tags/translation/stop', {}); },
+  getTagTranslationStatus() { return request('/tags/translation/status'); },
+
   /** 获取可用标注模型列表（WD14 / CL / LLM） */
   getInterrogators() {
     return request('/api/interrogators');
@@ -315,6 +444,52 @@ export const api = {
   /** 数据集分析 */
   analyzeDataset(params) {
     return postJson('/api/dataset/analyze', params);
+  },
+
+  /** FIM-LoRA 训练前逐层 rank 扫描（companion tool，提交异步 job） */
+  startFimScan(config) {
+    return postJson('/api/system/fim-scan', { config });
+  },
+
+  /** 只读达标预测（copilot 只读预测器）：按当前趋势能否在总步数内达标 */
+  getGoalForecast(runId, { lossTarget, validationLossTarget, l2Target, totalSteps } = {}) {
+    const params = new URLSearchParams();
+    if (lossTarget != null) params.set('loss_target', String(lossTarget));
+    if (validationLossTarget != null) params.set('validation_loss_target', String(validationLossTarget));
+    if (l2Target != null) params.set('l2_target', String(l2Target));
+    if (totalSteps != null) params.set('total_steps', String(totalSteps));
+    const qs = params.toString();
+    return request(`/api/system/goal-forecast/${encodeURIComponent(runId)}${qs ? `?${qs}` : ''}`);
+  },
+
+  /** 自动训练 Copilot：授权一次无人值守闭环训练会话（提交后台 job） */
+  startCopilot(payload) {
+    return postJson('/api/system/copilot/start', payload);
+  },
+
+  /** Copilot 会话状态（含持久化 SessionState + job 状态） */
+  getCopilotStatus(sessionId) {
+    return request(`/api/system/copilot/status/${encodeURIComponent(sessionId)}`);
+  },
+
+  /** 请求优雅停止一个 Copilot 会话 */
+  stopCopilot(sessionId) {
+    return postJson(`/api/system/copilot/stop/${encodeURIComponent(sessionId)}`, {});
+  },
+
+  /** Copilot 中间态快照列表 */
+  getCopilotSnapshots(sessionId) {
+    return request(`/api/system/copilot/snapshots/${encodeURIComponent(sessionId)}`);
+  },
+
+  /** Copilot 试验报告 URL */
+  getCopilotReportUrl(sessionId, trialIndex) {
+    return `/api/system/copilot/report/${encodeURIComponent(sessionId)}/${encodeURIComponent(trialIndex)}`;
+  },
+
+  /** 删除 Copilot 中间态快照 */
+  deleteCopilotSnapshot(sessionId, trialIndex) {
+    return request(`/api/system/copilot/snapshots/${encodeURIComponent(sessionId)}/${encodeURIComponent(trialIndex)}`, { method: 'DELETE' });
   },
 
   /** 分布式/异步任务列表 */
@@ -387,6 +562,133 @@ export const api = {
     return postJson('/api/tageditor/job_result', params);
   },
 
+  // ===== 高级标签工具（P1/P2/P3，需 advanced_enabled） =====
+
+  /** P1.1 集成打标管线 - 预览 */
+  ensembleTagPreview(params) {
+    return postJson('/api/tageditor/ensemble/preview', params);
+  },
+
+  /** P1.1 集成打标管线 - 应用 */
+  ensembleTagApply(params) {
+    return postJson('/api/tageditor/ensemble/start', params);
+  },
+
+  /** P1.2 结构化 caption - 预览 */
+  structurePreview(params) {
+    return postJson('/api/tageditor/structure/preview', params);
+  },
+
+  /** P1.2 结构化 caption - 应用 */
+  structureApply(params) {
+    return postJson('/api/tageditor/structure/start', params);
+  },
+
+  /** P1.3 近重复聚类审查 */
+  nearDuplicatesReview(params) {
+    return postJson('/api/tageditor/near_duplicates', params);
+  },
+
+  /** P5 近重复一键隔离（plan / quarantine / delete） */
+  nearDuplicatesCull(params) {
+    return postJson('/api/tageditor/near_duplicates/cull', params);
+  },
+
+  /** P5 本地内容扫描（opt-in；非合规保证） */
+  contentScan(params) {
+    return postJson('/api/dataset/content_scan', params);
+  },
+
+  /** P5 离群一键隔离 */
+  outliersCull(params) {
+    return postJson('/api/dataset/outliers/cull', params);
+  },
+
+  /** 缓存健康：report / repair_plan / quarantine_bad（只动 cache 产物） */
+  cacheHealth(params) {
+    return postJson('/api/dataset/cache_health', params);
+  },
+
+  /** P1.4 频率/类别批量 - 预览 */
+  frequencyBatchPreview(params) {
+    return postJson('/api/tageditor/frequency_batch/preview', params);
+  },
+
+  /** P1.4 频率/类别批量 - 应用 */
+  frequencyBatchApply(params) {
+    return postJson('/api/tageditor/frequency_batch/start', params);
+  },
+
+  /** P1.5 审查队列 */
+  reviewQueue(params) {
+    return postJson('/api/tageditor/review_queue', params);
+  },
+
+  /** P2.1 版本历史 */
+  versionHistory(params) {
+    return postJson('/api/tageditor/version/history', params);
+  },
+
+  /** P2.1 版本差异 */
+  versionDiff(params) {
+    return postJson('/api/tageditor/version/diff', params);
+  },
+
+  /** P2.1 版本回退（写） */
+  versionRevert(params) {
+    return postJson('/api/tageditor/version/revert', params);
+  },
+
+  /** P2.2 策略包 - 列表 */
+  policyPackList(params) {
+    return postJson('/api/tageditor/policy/list', params);
+  },
+
+  /** P2.2 策略包 - 预览 */
+  policyPackPreview(params) {
+    return postJson('/api/tageditor/policy/preview', params);
+  },
+
+  /** P2.2 策略包 - 应用（写） */
+  policyPackApply(params) {
+    return postJson('/api/tageditor/policy/apply', params);
+  },
+
+  /** P2.3 智能重标队列 - 构建 */
+  retagQueueBuild(params) {
+    return postJson('/api/tageditor/retag/queue', params);
+  },
+
+  /** P2.3 智能重标队列 - 标记（写） */
+  retagQueueMark(params) {
+    return postJson('/api/tageditor/retag/mark', params);
+  },
+
+  /** P2.3 智能重标队列 - 下一批 */
+  retagQueueNext(params) {
+    return postJson('/api/tageditor/retag/next', params);
+  },
+
+  /** P3.2 跨数据集标签情报 - 聚合 */
+  crossDatasetAggregate(params) {
+    return postJson('/api/tageditor/cross_dataset/aggregate', params);
+  },
+
+  /** P3.2 跨数据集标签情报 - 读取缓存 */
+  crossDatasetResult(params) {
+    return postJson('/api/tageditor/cross_dataset/result', params);
+  },
+
+  /** P3.3 闭环清洗管线 - 计划（只读） */
+  pipelinePlan(params) {
+    return postJson('/api/tageditor/pipeline/plan', params);
+  },
+
+  /** P3.3 闭环清洗管线 - 运行（写） */
+  pipelineRun(params) {
+    return postJson('/api/tageditor/pipeline/run', params);
+  },
+
   /** Masked-loss 数据集审查 */
   maskedLossAudit(params) {
     return postJson('/api/dataset/masked_loss_audit', params);
@@ -420,6 +722,11 @@ export const api = {
   /** BBox 标注 - 图片预览地址 */
   getBBoxImageUrl(path) {
     return `/api/dataset/bbox/image?path=${encodeURIComponent(path || '')}`;
+  },
+
+  /** Caption 训练 mutate 预览（不写盘） */
+  captionMutatePreview(params) {
+    return postJson('/api/captions/mutate/preview', params);
   },
 
   /** Caption 清洗 - 预览 */
@@ -538,6 +845,15 @@ export const api = {
   /** 审批插件 */
   approvePlugin(pluginId, approvedBy) {
     return postJson('/api/plugins/approve', { plugin_id: pluginId, approved_by: approvedBy || 'ui_user' });
+  },
+
+  /** 审批单个 SDK Runner */
+  approvePluginRunner(pluginId, runnerId, approvedBy) {
+    return postJson('/api/plugins/sdk/approve_runner', {
+      plugin_id: pluginId,
+      runner_id: runnerId,
+      approved_by: approvedBy || 'ui_user',
+    });
   },
 
   /** 撤销插件审批 */

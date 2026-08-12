@@ -2,8 +2,18 @@
   "key": "shuffle_caption",
   "title": "Caption 打乱",
   "category": "Caption / 正则",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora", "finetune", "flux-lora"],
-  "layers": ["数据层", "Caption 层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora",
+    "finetune",
+    "flux-lora"
+  ],
+  "layers": [
+    "数据层",
+    "Caption 层"
+  ],
   "standard": {
     "summary": "每次读取 caption 时随机打乱标签顺序，防止模型对固定标签位置产生依赖。",
     "effect": "开启后同一张图片的 caption 标签顺序每次不同，增强模型对标签排列的鲁棒性。",
@@ -16,5 +26,10 @@
     "expectedImpact": "降低标签位置过拟合；对生成多样性和 prompt 灵活性有帮助。",
     "tradeoffs": "keep_tokens 保持前 N 个 token（通常是触发词）不打乱；tag_group_shuffle 在组内打乱而非全局打乱。"
   },
-  "relatedConfigs": ["keep_tokens", "keep_tokens_separator", "shuffle_caption_tags_only", "caption_dropout_rate"]
+  "relatedConfigs": [
+    "keep_tokens",
+    "keep_tokens_separator",
+    "shuffle_caption_tags_only",
+    "caption_dropout_rate"
+  ]
 }

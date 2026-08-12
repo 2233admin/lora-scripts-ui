@@ -3,6 +3,7 @@
 // 注意：onclick="runTool(...)" 仍依赖 window.runTool（main.js 保留）
 
 import { $, escapeHtml } from '../utils/dom.js';
+import { createToolTemplates } from './toolsTemplates.js';
 
 export function createToolsRenderer({ state, renderSlot }) {
   const PRUNER_BLOCKS = ['TE1', 'TE2', 'IN00', 'IN01', 'IN02', 'IN03', 'IN04', 'IN05', 'IN06', 'IN07', 'IN08', 'M00', 'OUT00', 'OUT01', 'OUT02', 'OUT03', 'OUT04', 'OUT05', 'OUT06', 'OUT07', 'OUT08'];
@@ -12,13 +13,17 @@ export function createToolsRenderer({ state, renderSlot }) {
     { label: 'MID', blocks: ['M00'] },
     { label: 'OUT', blocks: ['OUT00', 'OUT01', 'OUT02', 'OUT03', 'OUT04', 'OUT05', 'OUT06', 'OUT07', 'OUT08'] },
   ];
+  const { renderToolCard, renderToolChip, renderToolWelcome, renderToolDetail } = createToolTemplates({
+    escapeHtml,
+    prunerGroups: PRUNER_GROUPS,
+  });
 
   function renderTools(container) {
     const tools = [
       {
         id: 'core_lora_analyze',
         title: 'LoRA Analyzer / XRay',
-        desc: '读取 LoRA 权重结构、rank、RMS、稀疏度、异常层和 block 分布。',
+        desc: 'OUT',
         group: 'LoRA XRay',
         icon: '🔎',
         endpoint: '/api/tools/lora/analyze',
@@ -29,7 +34,7 @@ export function createToolsRenderer({ state, renderSlot }) {
       {
         id: 'core_lora_block_analyze',
         title: 'LoRA Block XRay',
-        desc: '按 IN/MID/OUT/TE 区块统计 LoRA 作用强度，适合做剪枝和 block weight 判断。',
+        desc: '按 IN/MID/OUT/TE 区块统计 LoRA 作用强度',
         group: 'LoRA XRay',
         icon: '📊',
         endpoint: '/api/tools/lora/block-analyze',
@@ -40,7 +45,7 @@ export function createToolsRenderer({ state, renderSlot }) {
       {
         id: 'core_lora_prune',
         title: 'LoRA Pruner',
-        desc: '按区块保留或移除 LoRA 张量，生成新的 safetensors。默认不覆盖源文件。',
+        desc: 'LoRA 文件路径',
         group: 'LoRA XRay',
         icon: '✂',
         endpoint: '/api/tools/lora/prune',
@@ -61,7 +66,7 @@ export function createToolsRenderer({ state, renderSlot }) {
       {
         id: 'core_lora_svd_merge',
         title: 'LoRA SVD Merger',
-        desc: '把两个 LoRA 重建到 dense delta 后按比例融合，再 SVD 回目标 rank。',
+        desc: '把两个 LoRA 重建到 dense delta 后按比例融合',
         group: 'LoRA Surgery',
         icon: '🧬',
         endpoint: '/api/merger/merge-lora',
@@ -76,7 +81,7 @@ export function createToolsRenderer({ state, renderSlot }) {
       {
         id: 'core_lora_extract',
         title: 'LoRA Extractor',
-        desc: '从底模和微调模型的差分中提取 LoRA。大模型会比较慢，建议先小 rank 测试。',
+        desc: '从底模和微调模型的差分中提取 LoRA。',
         group: 'LoRA Surgery',
         icon: '🧲',
         endpoint: '/api/merger/extract',
@@ -90,7 +95,7 @@ export function createToolsRenderer({ state, renderSlot }) {
       {
         id: 'core_diagnostic_card',
         title: 'Diagnostic Card',
-        desc: '生成训练/LoRA 诊断分享卡。可先用 Analyzer 得到指标，再填入这里。',
+        desc: '生成训练/LoRA 诊断分享卡',
         group: 'Reports',
         icon: '▣',
         endpoint: '/api/tools/diagnostic-card',
@@ -103,7 +108,7 @@ export function createToolsRenderer({ state, renderSlot }) {
       {
         id: 'core_qpissa_convert',
         title: 'QPiSSA Converter',
-        desc: '手动把模型中的 2D 主体权重拆成 residual checkpoint + PiSSA/LoRA 初始化文件。',
+        desc: '手动把模型中的 2D 主体权重拆成 residual',
         group: 'Advanced',
         icon: 'Σ',
         endpoint: '/api/tools/qpissa/convert',
@@ -118,7 +123,7 @@ export function createToolsRenderer({ state, renderSlot }) {
       {
         id: 'core_model_merge',
         title: 'Model Merger',
-        desc: '手动合并 safetensors 模型：weighted_sum 或 add_difference，不进入训练链路。',
+        desc: '保存精度',
         group: 'Model Tools',
         icon: '⇄',
         endpoint: '/api/tools/model/merge',
@@ -135,7 +140,7 @@ export function createToolsRenderer({ state, renderSlot }) {
       {
         id: 'core_model_tensor_convert',
         title: 'Model Converter',
-        desc: '在 safetensors 与 PyTorch pt/pth tensor 容器之间转换。',
+        desc: '在 safetensors 与 PyTorch pt/pth',
         group: 'Model Tools',
         icon: '⇆',
         endpoint: '/api/tools/model/convert-tensors',
@@ -148,7 +153,7 @@ export function createToolsRenderer({ state, renderSlot }) {
       {
         id: 'core_diffusers_convert',
         title: 'Checkpoint 转 Diffusers',
-        desc: '手动把单文件 checkpoint/safetensors 转成 Diffusers 目录，依赖 diffusers 环境。',
+        desc: '手动把单文件 checkpoint/safetensors 转成',
         group: 'Model Tools',
         icon: '◫',
         endpoint: '/api/tools/model/convert-diffusers',
@@ -270,7 +275,7 @@ export function createToolsRenderer({ state, renderSlot }) {
       {
         id: 'convert_flux_lora',
         title: '转换 FLUX LoRA 格式',
-        desc: '在 ai-toolkit 和 sd-scripts 格式之间转换 FLUX LoRA。',
+        desc: '在 ai-toolkit 和 sd-scripts',
         script: 'networks/convert_flux_lora.py',
         fields: [
           { key: 'src_path', label: '源文件路径',type: 'text', placeholder: './output/source_lora.safetensors' },
@@ -312,7 +317,7 @@ export function createToolsRenderer({ state, renderSlot }) {
       {
         id: 'merge_models',
         title: '合并模型',
-        desc: '按指定比例合并多个 Stable Diffusion 模型。多个模型/比例用空格分隔。',
+        desc: '按指定比例合并多个 Stable Diffusion',
         script: 'tools/merge_models.py',
         fields: [
           { key: 'models', label: '模型路径（空格分隔）', type: 'text', placeholder: './sd-models/a.safetensors ./sd-models/b.safetensors' },
@@ -321,23 +326,6 @@ export function createToolsRenderer({ state, renderSlot }) {
           { key: 'saving_precision', label: '保存精度', type: 'text', placeholder: 'fp16' },
         ],
       },
-
-      {
-        id: 'merge_sd3',
-        title: '合并 SD3 模型',
-        desc: '将 SD3 的 DiT/VAE/CLIP/T5 合并为单个 safetensors 文件。',
-        script: 'tools/merge_sd3_safetensors.py',
-        fields: [
-          { key: 'dit', label: 'DiT/MMDiT模型路径', type: 'text', placeholder: '' },
-          { key: 'clip_l', label: 'CLIP-L 路径（可选）', type: 'text', placeholder: '' },
-          { key: 'clip_g', label: 'CLIP-G 路径（可选）', type: 'text', placeholder: '' },
-          { key: 't5xxl', label: 'T5-XXL 路径（可选）', type: 'text', placeholder: '' },
-          { key: 'vae', label: 'VAE 路径（可选）', type: 'text', placeholder: '' },
-          { key: 'output', label: '输出路径', type: 'text', placeholder: './output/merged_sd3.safetensors' },
-          { key: 'save_precision', label: '保存精度', type: 'text',placeholder: 'fp16' },
-        ],
-      },
-
       {
         id: 'convert_diffusers_to_flux',
         title: 'Diffusers 转 FLUX',
@@ -351,7 +339,7 @@ export function createToolsRenderer({ state, renderSlot }) {
       {
         id: 'lora_interrogator',
         title: 'LoRA 识别器',
-        desc: '检测 LoRA 网络的训练信息。⚠️ 仅支持 SD 1.5 的LoRA，不支持 SDXL/FLUX。底模必须是对应的 SD 1.5 模型。',
+        desc: '检测 LoRA 网络的训练信息',
         script: 'networks/lora_interrogator.py',
         fields: [
           { key: 'sd_model', label: '基础 SD 1.5模型路径', type: 'text', placeholder: './sd-models/sd15_model.safetensors' },
@@ -550,114 +538,6 @@ export function createToolsRenderer({ state, renderSlot }) {
     });
     setHint('可从最近一次 Analyzer / Block XRay 结果一键带入 block 建议。');
     syncActive();
-  }
-
-  function renderToolCard(tool, active) {
-    return `
-      <button class="toolbox-card${active ? ' active' : ''}" type="button" data-tool-id="${escapeHtml(tool.id)}">
-        <span class="toolbox-card-icon">${escapeHtml(tool.icon || '•')}</span>
-        <span class="toolbox-card-body"><strong>${escapeHtml(tool.title)}</strong><em>${escapeHtml(tool.desc)}</em></span>
-      </button>
-    `;
-  }
-
-  function renderToolChip(tool) {
-    return `<button class="toolbox-chip" type="button" data-tool-id="${escapeHtml(tool.id)}">${escapeHtml(tool.title)}</button>`;
-  }
-
-  function renderToolWelcome(coreTools) {
-    return `
-      <section class="toolbox-welcome">
-        <div class="toolbox-welcome-icon">🔬</div>
-        <h3>选择一个工具开始</h3>
-        <p>推荐先从 LoRA Analyzer 或 Block XRay 开始，确认层强度和异常后再做剪枝、SVD 合并或诊断卡。</p>
-        <div class="toolbox-quick-row">
-          ${coreTools.slice(0, 3).map((t) => renderToolChip(t)).join('')}
-        </div>
-      </section>
-    `;
-  }
-
-  function renderToolDetail(tool) {
-    const isPathField = (f) => /model|path|save_to|file|src_|dst_/.test(f.key);
-    const pickerTypeForField = (field) => {
-      const key = field.key || '';
-      if (/output_dir/i.test(key)) return 'output-folder';
-      if (/output_path|save_to|dst_path/i.test(key)) return 'output-model-file';
-      if (/model_path|base_model|finetuned_model|checkpoint_path|src_path|path|file/i.test(key)) return 'model-file';
-      return 'model-file';
-    };
-    return `
-      <section class="form-section tool-section toolbox-detail-card" id="tool-${tool.id}">
-        <header class="section-header toolbox-detail-head">
-          <div class="toolbox-detail-title"><span>${escapeHtml(tool.icon || '•')}</span><h3>${escapeHtml(tool.title)}</h3></div>
-          ${tool.group ? `<small>${escapeHtml(tool.group)}</small>` : ''}
-        </header>
-        <div class="section-summary">${escapeHtml(tool.desc)}</div>
-        ${tool.id === 'core_lora_prune' ? renderPrunerAssist(tool) : ''}
-        <div class="section-content tool-fields">
-          ${tool.fields.map((f) => {
-            const inputId =`tool-${tool.id}-${f.key}`;
-            if (isPathField(f)) {
-              return `
-            <div class="config-group">
-              <label>${escapeHtml(f.label)}</label>
-              <div class="input-picker">
-                <button class="picker-icon" type="button" title="系统文件选择器（Windows 资源管理器风格）" onclick="pickPathForInput('${inputId}', '${pickerTypeForField(f)}')">
-                  <svg class="icon"><use href="#icon-folder"></use></svg>
-                </button>
-                <input class="text-input" type="${f.type}" id="${inputId}" placeholder="${escapeHtml(f.placeholder || '')}">
-              </div>
-            </div>`;
-            }
-            return `
-            <div class="config-group">
-              <label>${escapeHtml(f.label)}</label>
-              <input class="text-input" type="${f.type}" id="${inputId}" placeholder="${escapeHtml(f.placeholder || '')}">
-            </div>`;
-        }).join('')}
-        </div>
-        <div class="tool-actions" style="display:flex;align-items:center;gap:12px;">
-          <button class="btn btn-primary btn-sm" type="button" id="btn-tool-${tool.id}"
-            onclick="runTool('${tool.id}', '${escapeHtml(tool.endpoint || tool.script)}', ${JSON.stringify(tool.fields.map((f) => f.key)).replaceAll('"', '&quot;')})">运行</button>
-          <span id="tool-status-${tool.id}" style="font-size:0.82rem;"></span>
-        </div>
-        <div id="tool-result-${tool.id}" class="tool-result-panel" style="display:none;"></div>
-      </section>
-    `;
-  }
-
-  function renderPrunerAssist(tool) {
-    return `
-      <section class="toolbox-subpanel">
-        <div class="toolbox-subpanel-head">
-          <strong>Block Presets</strong>
-          <span>先选预置，再按需微调 keep / drop。</span>
-        </div>
-        <div class="toolbox-preset-row">
-          ${(tool.presets || []).map((preset) => `<button class="toolbox-preset-btn" type="button" data-pruner-preset="${escapeHtml(preset.name)}" data-keep="${escapeHtml(preset.keep || '')}" data-drop="${escapeHtml(preset.drop || '')}">${escapeHtml(preset.name)}</button>`).join('')}
-        </div>
-        <div class="toolbox-block-actions">
-          <button class="toolbox-mini-btn" type="button" data-pruner-select="all">全选到 keep</button>
-          <button class="toolbox-mini-btn" type="button" data-pruner-select="style">风格块</button>
-          <button class="toolbox-mini-btn" type="button" data-pruner-select="character">角色块</button>
-          <button class="toolbox-mini-btn" type="button" data-pruner-select="clear">清空</button>
-        </div>
-        <div class="toolbox-block-actions">
-          <button class="toolbox-mini-btn" type="button" data-pruner-source="analyzer">载入 Analyzer 建议</button>
-          <button class="toolbox-mini-btn" type="button" data-pruner-source="xray">载入 Block XRay 热区</button>
-          <span class="toolbox-inline-hint" id="tool-${tool.id}-pruner-hint"></span>
-        </div>
-        ${PRUNER_GROUPS.map((group) => `
-          <div class="toolbox-block-group">
-            <span>${escapeHtml(group.label)}</span>
-            <div class="toolbox-block-grid">
-              ${group.blocks.map((block) => `<button class="toolbox-block-chip" type="button" data-pruner-block="${block}">${block}</button>`).join('')}
-            </div>
-          </div>
-        `).join('')}
-      </section>
-    `;
   }
 
   return { renderTools, renderToolDetail };

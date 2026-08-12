@@ -2,8 +2,15 @@
   "key": "glora_rank_dropout",
   "title": "GLoRA / GLoKr (广义 LoRA)",
   "category": "LoRA / LyCORIS",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora"],
-  "layers": ["适配器层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora"
+  ],
+  "layers": [
+    "适配器层"
+  ],
   "standard": {
     "summary": "GLoRA（Generalized LoRA）使用 ΔW = W·A + B 的更新形式（而非标准 LoRA 的 A·B）。GLoKr 是 Kronecker 参数化的广义适配器。两者都通过 LyCORIS 框架使用。",
     "effect": "GLoRA 的 ΔW = W·A + B 比标准 LoRA 的 A·B 表达力更强——它不仅修改低秩方向，还通过 W·A 项对原始权重做线性变换。GLoKr 用 Kronecker 积参数化广义更新。",
@@ -17,5 +24,11 @@
     "tradeoffs": "glora_export_mode/glokr_export_mode 控制导出格式（native/lora_compatible）。",
     "codePath": "lycoris/ → GLoRA/GLoKr algorithm → ΔW = W·A + B / Kronecker parameterization"
   },
-  "relatedConfigs": ["lycoris_algo", "glora_module_dropout", "glora_no_materialize_forward", "glokr_factor", "glokr_rank_dropout"]
+  "relatedConfigs": [
+    "lycoris_algo",
+    "glora_module_dropout",
+    "glora_no_materialize_forward",
+    "glokr_factor",
+    "glokr_rank_dropout"
+  ]
 }

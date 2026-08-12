@@ -2,8 +2,16 @@
   "key": "activation_cpu_offload_enabled",
   "title": "激活 CPU Offload",
   "category": "显存优化 / 激活",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora", "finetune"],
-  "layers": ["显存层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora",
+    "finetune"
+  ],
+  "layers": [
+    "显存层"
+  ],
   "standard": {
     "summary": "将大的激活张量从 GPU 迁移到 CPU pinned memory，减少 GPU 激活内存占用。backward 时自动搬回 GPU 计算梯度。",
     "effect": "activation_cpu_offload_min_tensor_mb 控制最小迁移阈值（只迁移大张量）。activation_cpu_offload_pool_gb 控制预分配的 pinned memory 池大小。",
@@ -17,5 +25,9 @@
     "tradeoffs": "与 activation_compression_enabled 可以互补——先压缩再 offload。",
     "codePath": "training_loop.py:activation_cpu_offload → pinned CPU pool → async copy → backward hook"
   },
-  "relatedConfigs": ["activation_cpu_offload_min_tensor_mb", "activation_cpu_offload_pool_gb", "activation_compression_enabled"]
+  "relatedConfigs": [
+    "activation_cpu_offload_min_tensor_mb",
+    "activation_cpu_offload_pool_gb",
+    "activation_compression_enabled"
+  ]
 }

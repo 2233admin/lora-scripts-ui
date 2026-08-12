@@ -2,8 +2,15 @@
   "key": "use_dora",
   "title": "DoRA (权重分解 LoRA)",
   "category": "LoRA / 变体",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora"],
-  "layers": ["适配器层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora"
+  ],
+  "layers": [
+    "适配器层"
+  ],
   "standard": {
     "summary": "DoRA 将权重更新分解为方向（direction）和幅度（magnitude）两个独立组件。方向由标准 LoRA 低秩矩阵学习，幅度由额外可训练向量学习。",
     "effect": "相比标准 LoRA，DoRA 在相同 rank 下通常有 5-15% 的质量提升，因为方向和幅度的解耦让优化更容易。代价是略微增加可训练参数量和显存。",
@@ -17,5 +24,10 @@
     "tradeoffs": "dora_wd（weight-decomposed）是 Anima UI 的别名。bypass_mode 已弃用。",
     "codePath": "core/lulynx/dora_layer.py:DoRALinear → magnitude * normalized(W + BA)"
   },
-  "relatedConfigs": ["network_dim", "network_alpha", "dora_mode", "dora_wd"]
+  "relatedConfigs": [
+    "network_dim",
+    "network_alpha",
+    "dora_mode",
+    "dora_wd"
+  ]
 }

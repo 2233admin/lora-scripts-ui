@@ -2,8 +2,14 @@
   "key": "pid_decoder_backend",
   "title": "PiD Native Decoder",
   "category": "推理 / 解码与放大",
-  "appliesTo": ["anima-lora", "newbie-lora", "qwen-image-lora"],
-  "layers": ["VAE Decode Replacement"],
+  "appliesTo": [
+    "anima-lora",
+    "newbie-lora",
+    "qwen-image-lora"
+  ],
+  "layers": [
+    "VAE Decode Replacement"
+  ],
   "standard": {
     "summary": "PiD 是 pixel diffusion decoder，可在 VAE decode 位置把 latent 解码/放大成像素。Lulynx 只支持用户本地提供权重的原生后端契约。",
     "effect": "未来 decode_backend=pid 会替换普通 VAE decode；当前 preview/generation/postprocess 路由尚未注册。",
@@ -17,5 +23,12 @@
     "tradeoffs": "源码许可证和权重许可证分开处理；未确认权重授权前不能自动启用。",
     "codePath": "backend/core/lulynx_trainer/pid_decoder_backend.py"
   },
-  "relatedConfigs": ["decode_backend", "pid_backbone", "pid_ckpt_type", "pid_checkpoint", "pid_tile_latent", "pid_compile"]
+  "relatedConfigs": [
+    "decode_backend",
+    "pid_backbone",
+    "pid_ckpt_type",
+    "pid_checkpoint",
+    "pid_tile_latent",
+    "pid_compile"
+  ]
 }

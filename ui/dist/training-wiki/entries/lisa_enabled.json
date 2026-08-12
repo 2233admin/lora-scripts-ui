@@ -2,8 +2,15 @@
   "key": "lisa_enabled",
   "title": "LISA (层级重要性采样)",
   "category": "训练 / 采样",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora"],
-  "layers": ["训练控制层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora"
+  ],
+  "layers": [
+    "训练控制层"
+  ],
   "standard": {
     "summary": "LISA 每步只激活一部分 LoRA 层进行训练（按重要性采样），减少每步显存和计算开销，同时保持全层训练的效果。",
     "effect": "lisa_active_ratio=0.2 表示每步只激活 20% 的 LoRA 层。显存和速度改善约 50-70%，质量损失约 2-5%。",
@@ -17,5 +24,9 @@
     "tradeoffs": "与 gradient_checkpointing 组合可进一步降低显存。",
     "codePath": "core/training_components/lisa.py:LISAScheduler → per-step layer selection"
   },
-  "relatedConfigs": ["lisa_active_ratio", "lisa_interval", "gradient_checkpointing"]
+  "relatedConfigs": [
+    "lisa_active_ratio",
+    "lisa_interval",
+    "gradient_checkpointing"
+  ]
 }

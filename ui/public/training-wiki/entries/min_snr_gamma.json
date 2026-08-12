@@ -2,8 +2,16 @@
   "key": "min_snr_gamma",
   "title": "Min-SNR 加权",
   "category": "正则 / Loss 加权",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora", "finetune"],
-  "layers": ["Loss 层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora",
+    "finetune"
+  ],
+  "layers": [
+    "Loss 层"
+  ],
   "standard": {
     "summary": "对高信噪比（low noise, 容易预测）的 timestep 降低 loss 权重，对低信噪比（high noise, 难以预测）的 timestep 提高权重，让模型均衡学习从纯噪声到清晰图像的所有去噪阶段。",
     "effect": "典型值 5.0（论文推荐值）。开启后模型的中间细节（纹理、表情、手指等）和构图能力显著改善，因为原本这些对应中等噪声级别的 timestep 被高 SNR 的简单 timestep 压制了。",
@@ -22,5 +30,11 @@
     "tradeoffs": "adaptive_loss_weighting_enabled=True 时会训练一个小的 MLP 来预测最优 SNR 权重——理论上比固定 γ 更灵活，但增加额外参数和优化目标。debiased_estimation_loss 使用 1/(1-α_t) 加权，数学上等价于去偏估计，在大 timestep 端更激进。两者不应同时使用。",
     "codePath": "training_loop.py:compute_snr() → clamp(snr, max=gamma) / divisor → per-sample loss weighting"
   },
-  "relatedConfigs": ["debiased_estimation_loss", "adaptive_loss_weighting_enabled", "loss_type", "noise_offset", "v_parameterization"]
+  "relatedConfigs": [
+    "debiased_estimation_loss",
+    "adaptive_loss_weighting_enabled",
+    "loss_type",
+    "noise_offset",
+    "v_parameterization"
+  ]
 }

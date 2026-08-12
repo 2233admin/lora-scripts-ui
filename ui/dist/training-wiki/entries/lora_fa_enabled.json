@@ -2,8 +2,15 @@
   "key": "lora_fa_enabled",
   "title": "LoRA-FA (因子化注意力)",
   "category": "LoRA / 变体",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora"],
-  "layers": ["适配器层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora"
+  ],
+  "layers": [
+    "适配器层"
+  ],
   "standard": {
     "summary": "LoRA-FA 只在 attention 层（Q/K/V/Out projection）注入 LoRA 适配器，跳过 FFN（前馈网络）层。减少可训练参数量的同时保持大部分学习效果。",
     "effect": "可训练参数减少约 40-50%，训练速度提升，显存降低。对大多数角色/风格学习质量影响很小。",
@@ -17,5 +24,9 @@
     "tradeoffs": "可与 network_train_unet_only 组合进一步减少训练范围。",
     "codePath": "trainer.py: LoRA injection filter → attention-only target modules"
   },
-  "relatedConfigs": ["network_dim", "network_train_unet_only", "network_train_text_encoder_only"]
+  "relatedConfigs": [
+    "network_dim",
+    "network_train_unet_only",
+    "network_train_text_encoder_only"
+  ]
 }

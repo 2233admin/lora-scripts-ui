@@ -2,8 +2,17 @@
   "key": "gradient_accumulation_steps",
   "title": "梯度累积",
   "category": "优化器 / 累积",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora", "finetune", "flux-lora"],
-  "layers": ["优化器层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora",
+    "finetune",
+    "flux-lora"
+  ],
+  "layers": [
+    "优化器层"
+  ],
   "standard": {
     "summary": "累积多少步 micro-batch 的梯度后，才做一次参数更新和梯度清零。等效于放大 batch_size 但不增加峰值显存。",
     "effect": "effective_batch = train_batch_size × gradient_accumulation_steps。例如 batch=1 + accum=4 = 有效 batch 4，但显存只占用 batch=1 的水平。训练速度方面，accum=4 意味着每 4 步才做一次 optimizer.step()，所以按 update 次数计的「有效训练步数」只有总步数的 1/4。",
@@ -22,5 +31,10 @@
     "tradeoffs": "fast 模式（默认）vs classic 模式：fast 跳过中间步的 max_grad_norm 检查和 scheduler warmup 检查，只在 optimizer step 步做。在大多数场景下结果一致，但如果有极端的 loss spike 发生在中间步，fast 模式不会立即裁剪。gradient_accumulation_mode='classic' 更安全但略慢。",
     "codePath": "training_loop.py:training_step() → loss /= accum_steps → loss.backward() → if (step+1) % accum_steps == 0: optimizer.step()"
   },
-  "relatedConfigs": ["train_batch_size", "gradient_accumulation_mode", "max_grad_norm", "resolution"]
+  "relatedConfigs": [
+    "train_batch_size",
+    "gradient_accumulation_mode",
+    "max_grad_norm",
+    "resolution"
+  ]
 }

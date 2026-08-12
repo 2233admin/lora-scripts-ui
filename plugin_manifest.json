@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "id": "lulynx.ui_theme.lora_rescripts_ui",
+  "name": "LoRA ReScripts UI",
+  "version": "2.0.0",
+  "description": "Legacy training UI with classic layout and proven workflows",
+  "author": "Lulynx",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "enabled_by_default": true,
+  "capabilities": [
+    "ui_theme"
+  ],
+  "ui_theme_metadata": {
+    "entry_file": "ui/dist/index.html",
+    "dist_dir": "ui/dist"
+  }
+}

@@ -2,8 +2,15 @@
   "key": "svd_grad_proj_enabled",
   "title": "SVD 梯度投影",
   "category": "优化器 / 实验性",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora"],
-  "layers": ["优化器层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora"
+  ],
+  "layers": [
+    "优化器层"
+  ],
   "standard": {
     "summary": "通过 SVD 分解将梯度投影到低秩子空间中，减少梯度更新的有效维度，实现更内存高效的训练。",
     "effect": "svd_grad_proj_rank=128 控制投影子空间的维度。svd_grad_proj_update_interval=200 控制投影基的重算频率。svd_grad_proj_target 选择作用范围（lora/all）。",
@@ -17,5 +24,10 @@
     "tradeoffs": "投影基需要定期更新以适应训练动态。",
     "codePath": "training_loop.py:SVD gradient projection → P·P^T·g → optimizer.step()"
   },
-  "relatedConfigs": ["svd_grad_proj_rank", "svd_grad_proj_update_interval", "svd_grad_proj_scale", "svd_grad_proj_target"]
+  "relatedConfigs": [
+    "svd_grad_proj_rank",
+    "svd_grad_proj_update_interval",
+    "svd_grad_proj_scale",
+    "svd_grad_proj_target"
+  ]
 }

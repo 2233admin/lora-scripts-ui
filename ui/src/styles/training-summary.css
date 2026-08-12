@@ -1,0 +1,118 @@
+/* 训练确认对话框样式 */
+
+.training-summary-dialog {
+  max-width: 720px;
+  width: 90vw;
+}
+
+.training-summary-body {
+  max-height: 65vh;
+  overflow-y: auto;
+}
+
+/* 分组容器 */
+.ts-groups-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-top: 1rem;
+}
+
+/* 单个分组 */
+.ts-group {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.ts-group-title {
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-main);
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  letter-spacing: 0.02em;
+}
+
+.ts-group-content {
+  padding: 0.5rem;
+}
+
+/* 参数行 */
+.ts-param-row {
+  display: grid;
+  grid-template-columns: minmax(140px, 1fr) 2fr;
+  gap: 1rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: 6px;
+  transition: background-color 0.15s ease;
+}
+
+.ts-param-row:hover {
+  background: var(--bg-hover);
+}
+
+.ts-param-row + .ts-param-row {
+  margin-top: 0.25rem;
+}
+
+.ts-param-label {
+  font-size: 0.875rem;
+  color: var(--text-dim);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+}
+
+.ts-param-value {
+  font-size: 0.875rem;
+  color: var(--text-main);
+  font-family: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+  word-break: break-word;
+  display: flex;
+  align-items: center;
+}
+
+/* 警告行样式 */
+.ts-row-warn {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 6px;
+}
+
+.ts-row-warn .ts-param-label {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.ts-row-warn .ts-param-value {
+  color: var(--danger);
+}
+
+/* 响应式调整 */
+@media (max-width: 640px) {
+  .training-summary-dialog {
+    width: 95vw;
+    max-width: none;
+  }
+
+  .ts-param-row {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+  }
+
+  .ts-param-label {
+    font-size: 0.8125rem;
+  }
+
+  .ts-param-value {
+    font-size: 0.8125rem;
+    padding-left: 0;
+  }
+
+  .ts-groups-container {
+    gap: 1rem;
+  }
+}

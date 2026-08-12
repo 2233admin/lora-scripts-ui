@@ -2,8 +2,15 @@
   "key": "merge_export",
   "title": "合并导出 (Merged Checkpoint)",
   "category": "保存 / 导出",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora"],
-  "layers": ["保存层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora"
+  ],
+  "layers": [
+    "保存层"
+  ],
   "standard": {
     "summary": "训练结束后自动将 LoRA 权重合并到底模中，导出完整的合并模型而非单独的 LoRA 文件。",
     "effect": "merge_export=True 启用合并导出。anima_merge_export 对 Anima 模型有特殊处理。导出的模型是完整的底模 + LoRA 合并结果。",
@@ -17,5 +24,11 @@
     "tradeoffs": "base_weight 和 base_weights_multiplier 支持多 LoRA 加权合并。",
     "codePath": "trainer.py:merge_export → LoRA delta computation → weight addition → full model save"
   },
-  "relatedConfigs": ["anima_merge_export", "base_weight", "base_weight_path", "base_weights_multiplier", "prefuse_adapter_path"]
+  "relatedConfigs": [
+    "anima_merge_export",
+    "base_weight",
+    "base_weight_path",
+    "base_weights_multiplier",
+    "prefuse_adapter_path"
+  ]
 }

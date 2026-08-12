@@ -2,8 +2,15 @@
   "key": "hydralora_enabled",
   "title": "HydraLoRA (混合专家 LoRA)",
   "category": "LoRA / 变体",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora"],
-  "layers": ["适配器层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora"
+  ],
+  "layers": [
+    "适配器层"
+  ],
   "standard": {
     "summary": "HydraLoRA 将 LoRA 扩展为 Mixture-of-Experts 结构——多个 LoRA 专家通过路由机制选择性激活，提升容量的同时控制推理开销。",
     "effect": "hydralora_num_experts=4 + hydralora_top_k=2 表示 4 个专家每步激活 2 个。有效容量翻倍但推理开销只增加约 50%。",
@@ -17,5 +24,10 @@
     "tradeoffs": "需要推理端支持 HydraLoRA 格式。",
     "codePath": "core/lulynx/ → HydraLoRA layer → routing + top-k expert selection"
   },
-  "relatedConfigs": ["hydralora_num_experts", "hydralora_routing", "hydralora_top_k", "hydralora_balance_loss_weight"]
+  "relatedConfigs": [
+    "hydralora_num_experts",
+    "hydralora_routing",
+    "hydralora_top_k",
+    "hydralora_balance_loss_weight"
+  ]
 }

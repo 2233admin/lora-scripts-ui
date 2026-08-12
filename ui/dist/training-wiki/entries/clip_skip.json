@@ -2,8 +2,14 @@
   "key": "clip_skip",
   "title": "CLIP Skip",
   "category": "文本编码器 / 层级",
-  "appliesTo": ["sdxl-lora", "sd-lora", "finetune"],
-  "layers": ["文本编码器层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "finetune"
+  ],
+  "layers": [
+    "文本编码器层"
+  ],
   "standard": {
     "summary": "跳过 CLIP 文本编码器 Transformer 的最后几层，使用更浅层的隐藏状态作为文本条件。浅层的语义表示更抽象/泛化，深层更具体/精确。",
     "effect": "skip=1（默认）使用最后一层，语义最精确，适合写实和精确的 prompt 跟随。skip=2 使用倒数第二层，语义更宽泛，模型对 prompt 的具体措辞更宽容，增加生成多样性——这也是为什么动漫/插画社区偏好 skip=2。",
@@ -22,5 +28,10 @@
     "tradeoffs": "network_train_text_encoder_only 或 LoRA 训练 TE 时，skip 的影响更复杂——训练的 TE 权重是针对特定 skip 层优化的。keep_tokens > 0 时前 N 个 token（通常是触发词）不打乱，但 skip 影响的是所有 token 的表示层。",
     "codePath": "trainer.py:encode_prompt() → text_encoder(input_ids, output_hidden_states=True) → hidden_states[-(clip_skip+1)]"
   },
-  "relatedConfigs": ["max_token_length", "cache_text_encoder_outputs", "network_train_text_encoder_only", "network_train_unet_only"]
+  "relatedConfigs": [
+    "max_token_length",
+    "cache_text_encoder_outputs",
+    "network_train_text_encoder_only",
+    "network_train_unet_only"
+  ]
 }

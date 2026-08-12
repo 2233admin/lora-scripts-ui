@@ -2,8 +2,15 @@
   "key": "t_lora_enabled",
   "title": "T-LoRA (时间感知 LoRA)",
   "category": "LoRA / 变体",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora"],
-  "layers": ["适配器层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora"
+  ],
+  "layers": [
+    "适配器层"
+  ],
   "standard": {
     "summary": "T-LoRA 让 LoRA 的 rank 随 diffusion timestep 变化——高噪声 timestep 用更大 rank 捕获全局结构，低噪声 timestep 用更小 rank 精调细节。",
     "effect": "不同 timestep 激活不同的 LoRA 子空间。t_lora_max_t 控制时间维度上限。tlora_rank_schedule 控制 rank 如何随 timestep 变化。",
@@ -17,5 +24,10 @@
     "tradeoffs": "文件大小为 T × 标准 LoRA。推理速度不变（只选一个桶）。",
     "codePath": "networks/tlora.py → timestep-conditioned rank selection"
   },
-  "relatedConfigs": ["t_lora_max_t", "tlora_min_rank", "tlora_rank_schedule", "tlora_orthogonal_init"]
+  "relatedConfigs": [
+    "t_lora_max_t",
+    "tlora_min_rank",
+    "tlora_rank_schedule",
+    "tlora_orthogonal_init"
+  ]
 }

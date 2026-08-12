@@ -2,8 +2,17 @@
   "key": "concept_geometry_enabled",
   "title": "概念几何采样",
   "category": "数据集 / 采样",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora", "finetune"],
-  "layers": ["数据层", "采样层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora",
+    "finetune"
+  ],
+  "layers": [
+    "数据层",
+    "采样层"
+  ],
   "standard": {
     "summary": "分析训练数据中概念/标签之间的几何关系（密度、冲突、层级），用于更智能地采样和加权。",
     "effect": "开启后在训练前生成 concept_geometry.json，训练时按概念密度调整采样概率和 loss 权重。",
@@ -16,5 +25,9 @@
     "expectedImpact": "显著改善多概念训练中的概念均衡性；减少高频概念过拟合和低频概念欠拟合。",
     "tradeoffs": "concept_geometry_loss_weighting 进一步在 loss 层面加权，但可能导致低频概念过学；需要短测确认。"
   },
-  "relatedConfigs": ["concept_geometry_sampler_mode", "concept_geometry_loss_weighting", "concept_geometry_density_power"]
+  "relatedConfigs": [
+    "concept_geometry_sampler_mode",
+    "concept_geometry_loss_weighting",
+    "concept_geometry_density_power"
+  ]
 }

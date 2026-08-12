@@ -1,0 +1,25 @@
+{
+  "key": "wan22_model_variant",
+  "title": "变体（wan22_model_variant）",
+  "category": "训练参数",
+  "appliesTo": [],
+  "layers": [],
+  "standard": {
+    "summary": "ti2v-5b 单塔 / t2v-a14b 双塔",
+    "effect": "",
+    "whenToUse": "不确定时先保持默认，小步数短测后再调。",
+    "avoidWhen": "与预检冲突或与其它互斥选项同时开启时。",
+    "optionDescriptions": {
+      "ti2v-5b": "TI2V 5B 单塔。",
+      "t2v-a14b": "T2V A14B 双塔。"
+    }
+  },
+  "advanced": {
+    "principle": "ti2v-5b 单塔 / t2v-a14b 双塔（high|low|both）。VAE 与 latent C 按变体 fail-closed。",
+    "intervention": "",
+    "expectedImpact": "",
+    "tradeoffs": "",
+    "codePath": ""
+  },
+  "relatedConfigs": []
+}

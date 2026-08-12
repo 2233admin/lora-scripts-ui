@@ -2,8 +2,16 @@
   "key": "caption_variants_enabled",
   "title": "Caption 变体训练",
   "category": "Caption / 高级",
-  "appliesTo": ["sdxl-lora", "anima-lora", "newbie-lora", "flux-lora"],
-  "layers": ["数据层", "Caption 层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "anima-lora",
+    "newbie-lora",
+    "flux-lora"
+  ],
+  "layers": [
+    "数据层",
+    "Caption 层"
+  ],
   "standard": {
     "summary": "每张图可以有多种 caption 变体（不同 .txt 后缀或 JSON 字段），训练时按调度策略在变体之间切换。增强模型对不同标注风格的鲁棒性。",
     "effect": "例如一张图同时有 .txt（标准 tag）、.tag（精简 tag）、.desc（自然语言描述）三种变体。训练时交替使用，模型学会适应不同 prompt 风格。",
@@ -17,5 +25,10 @@
     "tradeoffs": "与 cache_text_encoder_outputs 配合时，每种变体需要单独缓存。",
     "codePath": "dataset/elements.py:CaptionVariantManager → per-step variant selection"
   },
-  "relatedConfigs": ["caption_variants", "caption_variant_schedule", "caption_variant_ratio", "caption_variant_loss_adaptive"]
+  "relatedConfigs": [
+    "caption_variants",
+    "caption_variant_schedule",
+    "caption_variant_ratio",
+    "caption_variant_loss_adaptive"
+  ]
 }

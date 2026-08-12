@@ -2,8 +2,18 @@
   "key": "fp8_base_compute",
   "title": "FP8 Base Compute (FP8 张量核心计算)",
   "category": "精度 / 计算",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora", "finetune", "flux-lora"],
-  "layers": ["模型层", "性能层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora",
+    "finetune",
+    "flux-lora"
+  ],
+  "layers": [
+    "模型层",
+    "性能层"
+  ],
   "standard": {
     "summary": "在 Ada/Hopper GPU 上使用 FP8 张量核心（torch._scaled_mm）执行冻结底模的 GEMM 计算，比 FP16 更快且显存占用更低。",
     "effect": "fp8_base_compute=True 时，冻结的 Linear 层使用 FP8 tensor core 执行前向计算。仅影响冻结权重（不影响 LoRA 可训练参数）。需要 Ada GPU (RTX 4090 等) 或 Hopper GPU。",
@@ -17,5 +27,11 @@
     "tradeoffs": "与 weight_compression 可以组合使用。dynamo_recompile_limit 和 activation_memory_budget 是额外的编译调优参数。",
     "codePath": "trainer.py:_flag_fp8_base_compute_linears() → lora_injector.py:FP8 scaled_mm forward"
   },
-  "relatedConfigs": ["fp8_base", "fp8_base_unet", "weight_compression_enabled", "dynamo_recompile_limit", "activation_memory_budget"]
+  "relatedConfigs": [
+    "fp8_base",
+    "fp8_base_unet",
+    "weight_compression_enabled",
+    "dynamo_recompile_limit",
+    "activation_memory_budget"
+  ]
 }

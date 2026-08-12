@@ -2,8 +2,16 @@
   "key": "mn_lora_enabled",
   "title": "MN-LoRA (矩阵归一化 LoRA)",
   "category": "训练 / MN-LoRA",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora"],
-  "layers": ["优化器层", "适配器层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora"
+  ],
+  "layers": [
+    "优化器层",
+    "适配器层"
+  ],
   "standard": {
     "summary": "MN-LoRA 是 Lulynx 的旗舰训练特性——通过矩阵归一化、梯度子空间投影（GSP）和训练梯度方向加权（TG-WD）等技术，在不增加 rank 的情况下显著提升 LoRA 训练质量。",
     "effect": "mn_lora_preset 提供四档预设：slim（最小开销）、fast（快速收敛）、balanced（均衡）、quality（最高质量）。balanced 通常能比标准 LoRA 提升 5-15% 质量。",
@@ -23,5 +31,13 @@
     "tradeoffs": "mn_lora_plus_plus 是 MN-LoRA 的增强版，额外增加自适应 rank 调整和模块级学习率适配。mn_lora_kfac_lite 引入 KFAC 预条件器进一步加速。mn_lora_trust_region 限制每步更新幅度防止过大跳跃。",
     "codePath": "core/training_components/mn_lora/ → GSP + TG-WD + adaptive sparse + trust region → optimizer step"
   },
-  "relatedConfigs": ["mn_lora_preset", "mn_lora_gsp_enabled", "mn_lora_tgwd_enabled", "mn_lora_k_ratio", "mn_lora_update_interval", "mn_lora_plus_plus_enabled", "mn_lora_kfac_lite_enabled"]
+  "relatedConfigs": [
+    "mn_lora_preset",
+    "mn_lora_gsp_enabled",
+    "mn_lora_tgwd_enabled",
+    "mn_lora_k_ratio",
+    "mn_lora_update_interval",
+    "mn_lora_plus_plus_enabled",
+    "mn_lora_kfac_lite_enabled"
+  ]
 }

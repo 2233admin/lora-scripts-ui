@@ -2,8 +2,13 @@
   "key": "chimera_hydra_enabled",
   "title": "ChimeraHydra",
   "category": "LoRA / MoE",
-  "appliesTo": ["anima-lora", "newbie-lora"],
-  "layers": ["LoRA Adapter"],
+  "appliesTo": [
+    "anima-lora",
+    "newbie-lora"
+  ],
+  "layers": [
+    "LoRA Adapter"
+  ],
   "standard": {
     "summary": "ChimeraHydra 是 HydraLoRA v2 思路：内容专家池和频率/FEI 专家池双路相加。当前是 default-off primitive，不会改变现有 hydralora。",
     "effect": "内容 routing 负责语义/概念，频率 routing 负责纹理或频域特征，两路 delta 相加。",
@@ -17,5 +22,9 @@
     "tradeoffs": "文件和计算开销高于普通 LoRA，不能静默替换 hydralora。",
     "codePath": "backend/core/lulynx_trainer/chimera_hydra.py"
   },
-  "relatedConfigs": ["chimera_hydra_enabled", "chimera_hydra_content_experts", "chimera_hydra_frequency_experts"]
+  "relatedConfigs": [
+    "chimera_hydra_enabled",
+    "chimera_hydra_content_experts",
+    "chimera_hydra_frequency_experts"
+  ]
 }

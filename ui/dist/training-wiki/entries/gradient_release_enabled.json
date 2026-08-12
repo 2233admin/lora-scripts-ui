@@ -2,8 +2,16 @@
   "key": "gradient_release_enabled",
   "title": "梯度释放 (显存优化)",
   "category": "显存优化 / 梯度",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora", "finetune"],
-  "layers": ["显存层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora",
+    "finetune"
+  ],
+  "layers": [
+    "显存层"
+  ],
   "standard": {
     "summary": "在 backward 过程中逐参数释放梯度张量，减少梯度内存的峰值占用。",
     "effect": "gradient_release_mode='post_step' 在 optimizer.step 后遍历释放；'during_backward' 在 backward hook 中即时释放。",
@@ -17,5 +25,8 @@
     "tradeoffs": "during_backward 模式不兼容梯度累积 > 1。",
     "codePath": "training_loop.py:gradient_release → per-parameter backward hook → immediate .grad release"
   },
-  "relatedConfigs": ["gradient_release_mode", "gradient_accumulation_steps"]
+  "relatedConfigs": [
+    "gradient_release_mode",
+    "gradient_accumulation_steps"
+  ]
 }

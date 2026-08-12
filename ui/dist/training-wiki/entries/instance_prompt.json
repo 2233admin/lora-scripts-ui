@@ -2,8 +2,15 @@
   "key": "instance_prompt",
   "title": "DreamBooth 训练",
   "category": "训练 / DreamBooth",
-  "appliesTo": ["sdxl-lora", "sd-lora", "finetune"],
-  "layers": ["训练控制层", "数据层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "finetune"
+  ],
+  "layers": [
+    "训练控制层",
+    "数据层"
+  ],
   "standard": {
     "summary": "DreamBooth 用少量图片（5-20 张）训练模型学习新概念。instance_prompt 是触发词（如 'sks person'），class_prompt 是类别描述（如 'a person'）。prior_loss_weight 控制先验保留强度。",
     "effect": "模型学会将触发词与特定主体关联。class_prompt 帮助模型保持类别的泛化能力（先验保留）。",
@@ -17,5 +24,11 @@
     "tradeoffs": "prior_loss_weight 太大会限制个性化程度；太小会导致类别概念被破坏。",
     "codePath": "training_loop.py:DreamBooth → instance_loss + prior_loss_weight × prior_loss"
   },
-  "relatedConfigs": ["class_prompt", "num_class_images", "prior_loss_weight", "use_lora", "lora_rank"]
+  "relatedConfigs": [
+    "class_prompt",
+    "num_class_images",
+    "prior_loss_weight",
+    "use_lora",
+    "lora_rank"
+  ]
 }

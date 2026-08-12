@@ -50,28 +50,38 @@ export function createNavActions({
   }
 
   function setupTopbar() {
-    $$('.top-nav-item').forEach((item, index) => {
+    // Bind by DOM order ↔ TOPBAR_TABS index. HTML must keep the same count as
+    // UI_TABS (9): model…speed + frontier + advanced. Extra DOM nodes hide;
+    // missing DOM nodes drop the tail of UI_TABS (this previously ate advanced
+    // and left the last slot labeled 「高级」 while bound to frontier).
+    const items = $$('.top-nav-item');
+    if (items.length !== TOPBAR_TABS.length) {
+      console.warn(
+        `[topbar] nav slots=${items.length} UI_TABS=${TOPBAR_TABS.length}; labels/bindings may desync`,
+      );
+    }
+    items.forEach((item, index) => {
       const tabKey = TOPBAR_TABS[index];
       if (!tabKey) {
         item.style.display = 'none';
         return;
-     }
+      }
       item.dataset.tab = tabKey;
       item.addEventListener('click', (event) => {
         event.preventDefault();
-   state.activeTab = tabKey;
+        state.activeTab = tabKey;
         localStorage.setItem('sdxl_ui_tab', tabKey);
-   if (state.activeModule === 'config') {
+        if (state.activeModule === 'config') {
           if (state.configWaterfall) {
             // 瀑布流模式：滚动到对应锚点
             const anchor = document.getElementById('waterfall-tab-' + tabKey);
             if (anchor) {
               anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
             } else {
-              //该 tab 在当前训练类型下没有可见 section，直接重渲染
+              // 该 tab 在当前训练类型下没有可见 section，直接重渲染
               renderView('config');
             }
-            // 仍然刷新 topbar 高亮
+            // 仅刷新 topbar 高亮
             $$('.top-nav-item').forEach((it) => {
               it.classList.toggle('active', it.dataset.tab === tabKey);
             });

@@ -2,8 +2,16 @@
   "key": "use_lookahead",
   "title": "Lookahead 优化",
   "category": "优化器 / 高级",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora", "finetune"],
-  "layers": ["优化器层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora",
+    "finetune"
+  ],
+  "layers": [
+    "优化器层"
+  ],
   "standard": {
     "summary": "Lookahead 维护一组慢权重，每 K 步将快权重（正常训练的权重）同步到慢权重。慢权重更平滑稳定，推理时使用慢权重。",
     "effect": "lookahead_k=5 表示每 5 步同步一次。lookahead_alpha=0.5 控制快慢权重的混合比例。可减少训练震荡。",
@@ -17,5 +25,9 @@
     "tradeoffs": "与 EMA 类似但作用机制不同。两者可以同时使用但可能冗余。",
     "codePath": "training_loop.py:Lookahead wrapper → per-K-step slow weight sync"
   },
-  "relatedConfigs": ["lookahead_k", "lookahead_alpha", "ema_use_ema"]
+  "relatedConfigs": [
+    "lookahead_k",
+    "lookahead_alpha",
+    "ema_use_ema"
+  ]
 }

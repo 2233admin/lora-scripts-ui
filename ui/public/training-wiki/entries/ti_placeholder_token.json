@@ -2,8 +2,13 @@
   "key": "ti_placeholder_token",
   "title": "Textual Inversion (文本反演)",
   "category": "训练 / Textual Inversion",
-  "appliesTo": ["sdxl-lora", "sd-lora"],
-  "layers": ["文本编码层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora"
+  ],
+  "layers": [
+    "文本编码层"
+  ],
   "standard": {
     "summary": "Textual Inversion 不训练模型权重，而是学习一个新的文本嵌入向量。ti_placeholder_token 是占位符（如 '<new>'），模型学会将这个 token 与训练图片中的概念关联。",
     "effect": "训练后在推理时使用 <new> 即可触发学到的概念。ti_num_vectors 控制嵌入向量数量（多向量表达更丰富但推理时需要连续输入）。",
@@ -17,5 +22,8 @@
     "tradeoffs": "ti_num_vectors 增加会提升表达力但增加 prompt 长度。",
     "codePath": "training_loop.py:TextualInversion → optimize embedding vector for placeholder token"
   },
-  "relatedConfigs": ["ti_init_token", "ti_num_vectors"]
+  "relatedConfigs": [
+    "ti_init_token",
+    "ti_num_vectors"
+  ]
 }

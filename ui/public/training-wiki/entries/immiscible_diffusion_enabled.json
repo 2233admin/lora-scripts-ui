@@ -2,8 +2,16 @@
   "key": "immiscible_diffusion_enabled",
   "title": "Immiscible Diffusion (不可混扩散)",
   "category": "训练 / Flow",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora", "flux-lora"],
-  "layers": ["训练控制层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora",
+    "flux-lora"
+  ],
+  "layers": [
+    "训练控制层"
+  ],
   "standard": {
     "summary": "在每个 mini-batch 内，按 L2 距离重新排列噪声到数据的配对——让噪声和对应数据在特征空间中更匹配，改善训练信号质量。",
     "effect": "immiscible_metric='l2'（标准 Immiscible 论文方法）按 L2 距离排序。'cosine' 按余弦相似度排序（适用于 flow matching OT 场景）。",
@@ -17,5 +25,7 @@
     "tradeoffs": "需要 batch 内计算配对距离，有 O(N²) 排序开销。",
     "codePath": "training_loop.py:immiscible_diffusion → mini-batch optimal transport reordering"
   },
-  "relatedConfigs": ["immiscible_metric"]
+  "relatedConfigs": [
+    "immiscible_metric"
+  ]
 }

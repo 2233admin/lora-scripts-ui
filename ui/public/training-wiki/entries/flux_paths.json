@@ -2,8 +2,12 @@
   "key": "flux_paths",
   "title": "FLUX 模型路径配置",
   "category": "FLUX / 路径",
-  "appliesTo": ["flux-lora"],
-  "layers": ["数据层"],
+  "appliesTo": [
+    "flux-lora"
+  ],
+  "layers": [
+    "数据层"
+  ],
   "standard": {
     "summary": "FLUX 模型由多个组件组成：Transformer（主模型）、AE（autoencoder）、T5-XXL（大语言模型编码器）、CLIP-L（视觉语言编码器）。每个组件需要单独指定路径。",
     "effect": "ae_path 指定 autoencoder；t5xxl_path 指定 T5 文本编码器；clip_l_path 指定 CLIP-L。t5_max_token_length 控制 T5 的最大 token 数（默认 512）。",
@@ -17,5 +21,11 @@
     "tradeoffs": "flux_requested_network_module 控制 FLUX 使用哪种 LoRA 模块格式。",
     "codePath": "trainer.py:FLUX pipeline → load AE + T5-XXL + CLIP-L + Transformer"
   },
-  "relatedConfigs": ["ae_path", "t5xxl_path", "clip_l_path", "t5_max_token_length", "flux_transformer_offload"]
+  "relatedConfigs": [
+    "ae_path",
+    "t5xxl_path",
+    "clip_l_path",
+    "t5_max_token_length",
+    "flux_transformer_offload"
+  ]
 }

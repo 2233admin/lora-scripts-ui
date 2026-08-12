@@ -2,8 +2,15 @@
   "key": "bw_enable",
   "title": "Block Weight (分层权重)",
   "category": "LoRA / 分层",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora"],
-  "layers": ["适配器层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora"
+  ],
+  "layers": [
+    "适配器层"
+  ],
   "standard": {
     "summary": "对 UNet 的不同 block（down/mid/up）设置不同的 LoRA 训练权重。可以让某些层学得更多、某些层学得更少。",
     "effect": "例如加强 up_blocks 的权重让模型更注重细节生成，或降低 mid_block 权重减少全局构图干扰。",
@@ -17,5 +24,12 @@
     "tradeoffs": "bw_preset 提供命名预设（如 'attn-heavy'、'up-focused'）。",
     "codePath": "training_loop.py:_build_optimizer() → per-block param groups with scaled lr"
   },
-  "relatedConfigs": ["bw_preset", "bw_in_weights", "bw_mid_weight", "bw_out_weights", "bw_te_weight", "block_lr_zero_threshold"]
+  "relatedConfigs": [
+    "bw_preset",
+    "bw_in_weights",
+    "bw_mid_weight",
+    "bw_out_weights",
+    "bw_te_weight",
+    "block_lr_zero_threshold"
+  ]
 }

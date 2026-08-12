@@ -2,8 +2,14 @@
   "key": "lulynx_geometric_lock",
   "title": "Lulynx LAB (实验研究特性)",
   "category": "训练 / LAB",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora"],
-  "layers": ["训练控制层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora"
+  ],
+  "layers": [
+    "训练控制层"
+  ],
   "standard": {
     "summary": "Lulynx LAB 是一组实验性研究特性的集合，包括几何锁（防止权重偏离预训练流形）、LN 守卫（保护 LayerNorm 不被破坏）、反油炸（防止生成图像出现过度锐化）等。",
     "effect": "lulynx_geometric_lock 使用权重投影保持参数在预训练流形附近。lulynx_ln_guard 用正则化保护 LayerNorm 参数。lulynx_anti_fry 限制高频区域的 loss 权重。",
@@ -17,5 +23,11 @@
     "tradeoffs": "各特性有独立的计算开销。不建议同时启用所有特性。",
     "codePath": "core/lulynx_lab/ → geometric projection + LN guard + anti-fry + ghost replay"
   },
-  "relatedConfigs": ["lulynx_proj_dim", "lulynx_manifold_weight", "lulynx_ln_guard", "lulynx_anti_fry", "lulynx_ghost_replay"]
+  "relatedConfigs": [
+    "lulynx_proj_dim",
+    "lulynx_manifold_weight",
+    "lulynx_ln_guard",
+    "lulynx_anti_fry",
+    "lulynx_ghost_replay"
+  ]
 }

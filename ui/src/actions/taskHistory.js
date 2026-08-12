@@ -2,9 +2,15 @@
 //   loadLocalTaskHistory / saveLocalTaskHistory / mergeTaskHistory
 //   deleteTaskHistory / clearAllTaskHistory
 //
+// 依赖（工厂注入）：state, api, showToast,
+//                  getPendingTrainingMetadata, applyTaskMetadata, rememberTrainingTaskMetadata,
+//                  renderView, renderTaskStatus
 
+import { compareActiveTasksFirst, getTaskId, isTaskActive } from '../utils/taskStatus.js';
+import { persistDeletedTaskIds as persistDeletedIdsToStorage } from '../utils/storage.js';
 import { formatDuration } from '../utils/trainingMetrics.js';
 
+// ── 任务总时长回填：终态任务缺 duration 时，用创建/完成时间戳推算 ──
 function readTaskStartMs(task) {
   const direct = Number(task && (task.created_at_ms || task.started_at_ms || task.start_time_ms));
   if (Number.isFinite(direct) && direct > 0) return direct;
@@ -17,7 +23,7 @@ function readTaskStartMs(task) {
 function ensureTaskDuration(task) {
   if (!task) return task;
   const status = String(task.status || '').toUpperCase();
-  if (status === 'RUNNING' || status === 'CREATED') return task;
+  if (status === 'RUNNING' || status === 'CREATED' || status === 'QUEUED') return task;
   if (Number(task.duration_ms || 0) > 0) return task;
   const startMs = readTaskStartMs(task);
   const endMs = Number(task.finished_at_ms || task.completed_at_ms || task.ended_at_ms || Date.now());
@@ -33,18 +39,18 @@ function ensureTaskDuration(task) {
   }
   return task;
 }
-// 依赖（工厂注入）：state, api, showToast,
-//                  getPersistableTasks,
-//                  getPendingTrainingMetadata, applyTaskMetadata, rememberTrainingTaskMetadata,
-//                  persistDeletedTaskIds, renderView, renderTaskStatus
+
+const PERSISTED_TASK_STATUSES = new Set(['FINISHED', 'COMPLETED', 'TERMINATED', 'FAILED', 'CANCELLED']);
+
+function isTerminalTaskStatus(status) {
+  return PERSISTED_TASK_STATUSES.has(String(status || '').trim().toUpperCase());
+}
 
 export function createTaskHistoryActions(deps) {
   const {
     state,
     api,
     showToast,
-    getPersistableTasks,
-    persistDeletedTaskIds,
     renderView,
     renderTaskStatus,
   } = deps;
@@ -52,6 +58,24 @@ export function createTaskHistoryActions(deps) {
   const getPendingTrainingMetadata = (...args) => deps.getPendingTrainingMetadata(...args);
   const applyTaskMetadata = (...args) => deps.applyTaskMetadata(...args);
   const rememberTrainingTaskMetadata = (...args) => deps.rememberTrainingTaskMetadata(...args);
+
+  function getPersistableTasks(tasks) {
+    return (tasks || []).filter((task) => isTerminalTaskStatus(task?.status));
+  }
+
+  function persistDeletedTaskIds() {
+    persistDeletedIdsToStorage(state._deletedTaskIds || []);
+  }
+
+  function setupTaskHistoryBeforeUnload() {
+    window.addEventListener('beforeunload', () => {
+      if (!state._taskHistoryDirty) return;
+      const completed = getPersistableTasks(state.tasks);
+      if (completed.length === 0) return;
+      const blob = new Blob([JSON.stringify({ tasks: completed })], { type: 'application/json' });
+      navigator.sendBeacon('/api/local/task_history', blob);
+    });
+  }
 
   /** Load task history from local persistent file (via Vite middleware) */
   async function loadLocalTaskHistory() {
@@ -79,53 +103,55 @@ export function createTaskHistoryActions(deps) {
   /** Merge localhistory with backend live tasks. Backend tasks take priority by id. */
  function mergeTaskHistory(backendTasks, localHistory,currentTasks) {
     const deletedIds = state._deletedTaskIds || new Set();
-    const META_KEYS = ['output_name', 'model_train_type', 'created_at', 'created_at_ms', 'finished_at', 'finished_at_ms', 'duration_ms', 'duration_str', 'training_type_label', 'resolution', 'network_dim', '_summary', '_recentlyFinished'];
+    const META_KEYS = ['output_name', 'model_train_type', 'created_at', 'created_at_ms', 'finished_at', 'finished_at_ms', 'duration_ms', 'duration_str', 'training_type_label', 'resolution', 'network_dim', 'queue_position', 'queue_depth', 'queue_message', '_summary', '_recentlyFinished'];
     const byId = new Map();
     const localById = new Map();
     const currentById = new Map();
-    for (const t of (currentTasks || [])) currentById.set(t.id, t);
+    const backendIds = new Set();
+    for (const t of (currentTasks || [])) currentById.set(getTaskId(t), t);
     for (const t of localHistory) {
-      if (deletedIds.has(t.id)) continue;
-      localById.set(t.id, t);
-      byId.set(t.id, { ...t });
+      const taskId = getTaskId(t);
+      if (deletedIds.has(taskId)) continue;
+      // 本地只应保留终态历史；若误存了 RUNNING/QUEUED 且后端已无此任务，下面会丢掉。
+      localById.set(taskId, t);
+      byId.set(taskId, { ...t });
     }
     const pendingMeta = getPendingTrainingMetadata();
     const activeTaskId = state.activeTrainingTaskId || (pendingMeta && pendingMeta.taskId) || '';
     for (const t of backendTasks) {
-      if (deletedIds.has(t.id)) continue;
-      const existing = byId.get(t.id);
+      const taskId = getTaskId(t);
+      if (!taskId || deletedIds.has(taskId)) continue;
+      backendIds.add(taskId);
+      const existing = byId.get(taskId);
       if (existing) {
-        const saved = localById.get(t.id);
-        const cur = currentById.get(t.id);
-        for (const k of ['created_at', 'created_at_ms']) {
-          if ((t[k] === undefined || t[k] === '') && cur && cur[k] !== undefined && cur[k] !== '') t[k] = cur[k];
-          if ((t[k] === undefined || t[k] === '') && saved && saved[k] !== undefined && saved[k] !== '') t[k] = saved[k];
-        }
-        ensureTaskDuration(t);
+        const saved = localById.get(taskId);
         // 后端覆盖 status/returncode，但保留本地已有的元数据
         for (const k of META_KEYS) {
-          if (!t[k]) { const curTask = currentById.get(t.id); if (curTask&& curTask[k] !== undefined && curTask[k] !=='') t[k] = curTask[k]; }
+          if (!t[k]) { const cur = currentById.get(taskId); if (cur&& cur[k] !== undefined && cur[k] !=='') t[k] = cur[k]; }
           if (saved && saved[k] !== undefined && saved[k] !== '' && !t[k]) t[k] = saved[k];
         }
-        const meta = getPendingTrainingMetadata(t.id) || (!activeTaskId && t.status === 'RUNNING'? pendingMeta : null);
+        ensureTaskDuration(t);
+        const meta = getPendingTrainingMetadata(taskId) || (!activeTaskId && isTaskActive(t) ? pendingMeta : null);
         if (meta) applyTaskMetadata(t, meta, { force: false });
-        if (meta && !state.activeTrainingTaskId) rememberTrainingTaskMetadata(t.id, meta);
+        if (meta && !state.activeTrainingTaskId) rememberTrainingTaskMetadata(taskId, meta);
         Object.assign(existing, t);
       } else {
-        const meta = getPendingTrainingMetadata(t.id) || (!activeTaskId && t.status === 'RUNNING' ? pendingMeta : null);
+        const meta = getPendingTrainingMetadata(taskId) || (!activeTaskId && isTaskActive(t) ? pendingMeta : null);
         if (meta) applyTaskMetadata(t, meta, { force: false });
-        if (meta && !state.activeTrainingTaskId) rememberTrainingTaskMetadata(t.id, meta);
+        if (meta && !state.activeTrainingTaskId) rememberTrainingTaskMetadata(taskId, meta);
         ensureTaskDuration(t);
-        byId.set(t.id, { ...t });
+        byId.set(taskId, { ...t });
+      }
+    }
+    // 丢弃「本地/内存仍活跃，但后端列表已无此 id」的幽灵任务，防止底栏卡「训练中」。
+    for (const [taskId, task] of Array.from(byId.entries())) {
+      if (isTaskActive(task) && !backendIds.has(taskId)) {
+        byId.delete(taskId);
       }
     }
     const arr = Array.from(byId.values());
-    arr.sort((a, b) => {
-      if (a.status === 'RUNNING' && b.status !== 'RUNNING') return -1;
-      if (b.status === 'RUNNING' && a.status !== 'RUNNING') return 1;
-      return 0;
-    });
- return arr;
+    arr.sort(compareActiveTasksFirst);
+    return arr;
   }
 
   // ── 任务历史删除 ──
@@ -157,7 +183,7 @@ export function createTaskHistoryActions(deps) {
   async function clearAllTaskHistory() {
     if (!confirm('确认清空所有已完成的任务历史？\n（正在运行的任务不会被删除）')) return;
     try {
-      const localCount = state.tasks.filter(t => t.status !== 'RUNNING').length;
+      const localCount = state.tasks.filter(t => !isTaskActive(t)).length;
       // 后端 DELETE /api/tasks 会返回 {data: {deleted: N}}，优先使用其计数；失败时回退到本地统计
       const resp = await api.deleteAllTasks();
       const backendDeleted = Number(resp?.data?.deleted);
@@ -166,8 +192,8 @@ export function createTaskHistoryActions(deps) {
       const tasksResponse = await api.getTasks();
    // 把所有非运行中的任务加入黑名单，防止轮询又拉回来
       const allBackendTasks = tasksResponse?.data?.tasks || [];
-      for (const t of allBackendTasks) { if (t.status !== 'RUNNING') state._deletedTaskIds.add(t.id); }
-      for (const t of state.tasks) { if (t.status !== 'RUNNING') state._deletedTaskIds.add(t.id); }
+      for (const t of allBackendTasks) { if (!isTaskActive(t)) state._deletedTaskIds.add(getTaskId(t)); }
+      for (const t of state.tasks) { if (!isTaskActive(t)) state._deletedTaskIds.add(getTaskId(t)); }
       persistDeletedTaskIds();
       state.tasks = allBackendTasks.filter(t => !state._deletedTaskIds.has(t.id));
       // 注意：api.deleteAllTasks() 内部已同步清空本地 task_history.json，这里不再重复调用
@@ -184,6 +210,9 @@ export function createTaskHistoryActions(deps) {
   }
 
   return {
+    getPersistableTasks,
+    persistDeletedTaskIds,
+    setupTaskHistoryBeforeUnload,
     loadLocalTaskHistory,
     saveLocalTaskHistory,
     mergeTaskHistory,

@@ -2,8 +2,15 @@
   "key": "pcgrad_enabled",
   "title": "PCGrad (梯度冲突解决)",
   "category": "优化器 / 高级",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora"],
-  "layers": ["优化器层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora"
+  ],
+  "layers": [
+    "优化器层"
+  ],
   "standard": {
     "summary": "PCGrad（Projecting Conflicting Gradients）检测并解决多任务/多概念训练中的梯度冲突——当两个概念的梯度方向相反时，投影掉冲突分量。",
     "effect": "减少概念之间的互相干扰。pcgrad_conflict_threshold 控制什么程度的负余弦相似度被判定为冲突。",
@@ -17,5 +24,8 @@
     "tradeoffs": "计算开销随 LoRA 层数平方增长。大模型上可能需要限制投影范围。",
     "codePath": "training_loop.py:PCGrad → gradient conflict detection → projection → optimizer.step()"
   },
-  "relatedConfigs": ["pcgrad_conflict_threshold", "pcgrad_reduction"]
+  "relatedConfigs": [
+    "pcgrad_conflict_threshold",
+    "pcgrad_reduction"
+  ]
 }

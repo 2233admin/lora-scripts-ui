@@ -2,8 +2,16 @@
   "key": "stepped_loss_enabled",
   "title": "分阶段 Loss 调度",
   "category": "正则 / Loss",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora", "finetune"],
-  "layers": ["Loss 层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora",
+    "finetune"
+  ],
+  "layers": [
+    "Loss 层"
+  ],
   "standard": {
     "summary": "在训练过程中按指定的步数节点切换 loss 类型和权重。例如前期用 L2 快速收敛，后期切换到 Huber 提升鲁棒性。",
     "effect": "stepped_loss_schedule 是 JSON 数组：[{\"step\": 0, \"loss_type\": \"l2\", \"weight\": 1.0}, {\"step\": 1000, \"loss_type\": \"huber\", \"weight\": 0.8}]。",
@@ -17,5 +25,9 @@
     "tradeoffs": "需要经验来设计好的调度方案。建议先做短测对比。",
     "codePath": "training_loop.py:stepped_loss_schedule[step] → current loss_type + weight"
   },
-  "relatedConfigs": ["stepped_loss_schedule", "loss_type", "huber_c"]
+  "relatedConfigs": [
+    "stepped_loss_schedule",
+    "loss_type",
+    "huber_c"
+  ]
 }

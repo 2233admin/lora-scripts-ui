@@ -2,8 +2,15 @@
   "key": "concept_direction_enabled",
   "title": "概念方向训练",
   "category": "训练 / 高级",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora"],
-  "layers": ["Loss 层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora"
+  ],
+  "layers": [
+    "Loss 层"
+  ],
   "standard": {
     "summary": "通过定义概念方向对（如 '微笑的人' vs '普通人'）来训练 LoRA 学习特定的概念变化方向，而不是完整的图像生成。",
     "effect": "concept_direction_pairs 定义正/负 prompt 对，模型学习从负方向到正方向的「编辑向量」。适合学习表情、姿态等变化。",
@@ -17,5 +24,9 @@
     "tradeoffs": "concept_direction_guidance_scale 控制 CFG 强度。需要仔细构造 prompt 对。",
     "codePath": "training_loop.py:direction_loss = MSE(pred_pos - pred_neg, target) * weight"
   },
-  "relatedConfigs": ["concept_direction_pairs", "concept_direction_weight", "concept_direction_guidance_scale"]
+  "relatedConfigs": [
+    "concept_direction_pairs",
+    "concept_direction_weight",
+    "concept_direction_guidance_scale"
+  ]
 }

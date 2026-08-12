@@ -3,6 +3,9 @@
 //
 // 依赖较多，均通过工厂注入。保持零行为变更。
 
+import { getTaskId, isTaskActive, isTaskQueued } from '../utils/taskStatus.js';
+import { attachBubbleClosedLoopActionHistory } from '../utils/bubbleClosedLoopEvidence.js';
+
 export function createTrainingActions({
   state,
   api,
@@ -22,7 +25,15 @@ export function createTrainingActions({
   refreshTrainingLog,
   startTrainingLogPolling,
   startSysMonitorPolling,
-}) {
+  }) {
+  const placeholderTrainingTypes = new Map([
+    ['lumina-lora', 'Lumina LoRA'],
+    ['lumina-finetune', 'Lumina Finetune'],
+    ['qwen-image-lora', 'Qwen Image LoRA'],
+    ['hunyuan-dit-lora', 'HunyuanDiT LoRA'],
+    ['hunyuan-image-lora', 'HunyuanDiT LoRA'],
+  ]);
+
   function switchToTrainingMonitor() {
     state.activeModule = 'training';
     state.trainSubTab = 'monitor';
@@ -44,7 +55,11 @@ export function createTrainingActions({
     const loraType = String(c.lora_type || '').trim().toLowerCase();
     const optimizerText = `${c.optimizer_type || ''} ${c.optimizer || ''}`.toLowerCase();
     const routeText = String((tt || '') + ' ' + (c.model_train_type || '')).toLowerCase();
+    const isAnimaRoute = routeText.includes('anima');
+    const isKrea2Route = routeText.includes('krea2');
     const isNativeDitSelectiveRoute = routeText.includes('anima') || routeText.includes('newbie');
+    const weightCompressionPreset = String(c.weight_compression_preset || 'off').trim().toLowerCase();
+    const weightCompressionRequested = weightCompressionPreset !== 'off' || toBool(c.fp8_base) || toBool(c.weight_compression_enabled);
     const swapGranularity = String(c.swap_granularity || 'off').trim().toLowerCase().replace('-', '_');
     const validSwapGranularities = new Set(['off', 'auto', 'block', 'merged_block', 'layer']);
     const swapRatio = toNum(c.swap_ratio);
@@ -73,9 +88,9 @@ export function createTrainingActions({
       'networks.tlora',
       'networks.lora_flux',
       'networks.tlora_flux',
-      'networks.lora_sd3',
       'networks.lora_lumina',
-      'networks.lora_hunyuan_image',
+      'networks.lora_qwen_image',
+      'networks.lora_hunyuan_dit',
       'networks.lora_anima',
       'networks.tlora_anima',
     ]);
@@ -106,9 +121,14 @@ export function createTrainingActions({
       errors.push('「缓存文本编码器输出到磁盘」已开启但「缓存文本编码器输出」未开启。请一并勾选「缓存文本编码器输出」。');
     }
 
-    // 4. 注意力后端全部未开启
-    if (!toBool(c.xformers) && !toBool(c.sdpa) && !toBool(c.sageattn) && !toBool(c.flashattn) && !toBool(c.mem_eff_attn)) {
-      errors.push('未启用任何注意力加速后端（xformers / SDPA / SageAttention / FlashAttention）。训练将极度缓慢且显存占用极高。请至少开启 SDPA。');
+    // 4. 注意力：默认 auto 跟随启动环境，不再强制勾选布尔开关。
+    // 仅当用户显式写了无法识别的 backend 时告警；全关布尔是合法默认路径。
+    const attnBackend = String(c.attention_backend || c.attn_mode || '').trim().toLowerCase();
+    const hasExplicitAttn = toBool(c.xformers) || toBool(c.sdpa) || toBool(c.sageattn)
+      || toBool(c.flashattn) || toBool(c.mem_eff_attn) || toBool(c.use_sdpa)
+      || (attnBackend && attnBackend !== 'auto');
+    if (!hasExplicitAttn) {
+      // ok — runtime profile default applies
     }
 
 
@@ -140,6 +160,18 @@ export function createTrainingActions({
     // 10. full_fp16 与 full_bf16 冲突
     if (toBool(c.full_fp16) && toBool(c.full_bf16)) {
       errors.push('不能同时启用「完全 FP16」和「完全 BF16」。请只保留其中一个。');
+    }
+    if (weightCompressionRequested && toBool(c.torch_compile)) {
+      errors.push('权重压缩 / FP8 不能与 torch.compile 同时使用。请关闭其中一个。');
+    }
+    if (weightCompressionPreset !== 'off' && toBool(c.fp8_base)) {
+      errors.push('不要同时启用「冻结主干量化预设」和「原生 FP8 基座存储」。前者走 torchao/quanto 预设，后者走原生 fp8_e4m3 路线，请二选一。');
+    }
+    if (isKrea2Route && toBool(c.fp8_base)) {
+      warnings.push('Krea-2 当前正式推荐路线是 qfloat8 / experimental_float8 冻结主干量化。原生 fp8_base 先作为搁置，尤其 text fusion 路径不建议使用。');
+    }
+    if (toBool(c.fp8_base) && !toBool(c.fp8_base_compute) && (c.weight_compression_verify === undefined || toBool(c.weight_compression_verify))) {
+      warnings.push('已启用「原生 FP8 基座存储」，但未开启「原生 FP8 计算」。当前后端会将 native fp8_e4m3 视为 storage-only 并跳过应用；若想真的走原生 FP8 训练，请一并开启 fp8_base_compute。');
     }
 
     if (networkModule=== 'lycoris.kohya' && toBool(c.dora_wd) && toBool(c.bypass_mode)) {
@@ -247,21 +279,26 @@ export function createTrainingActions({
     }
 
     // 14. Flow Matching 参数校验
+    if (placeholderTrainingTypes.has(tt)) {
+      errors.push(`${placeholderTrainingTypes.get(tt)} 当前只是轻量选择入口，训练核心尚未接入。可以先保存配置，暂不能直接启动训练。`);
+    }
+
+    // 15. Flow Matching 参数校验
     if (flowEnabled && toBool(c.v_parameterization)) {
       errors.push('Flow Matching 不能与「V 参数化」同时开启。请二选一。');
     }
 
-    // 15. 对比 Flow Matching 依赖 Rectified Flow
+    // 16. 对比 Flow Matching 依赖 Rectified Flow
     if (toBool(c.contrastive_flow_matching) && !flowEnabled) {
       errors.push('启用「对比 Flow Matching」前，必须先开启「Rectified Flow」。');
     }
 
-    // 16. RF logit-normal 标准差必须大于 0
+    // 17. RF logit-normal 标准差必须大于 0
     if (flowEnabled && timestepSampling === 'logit_normal' && toNum(c.flow_logit_std) <= 0) {
       errors.push('RF Logit Std 必须大于 0。');
     }
 
-    // 17. RF 固定偏移比率不能小于 0
+    // 18. RF 固定偏移比率不能小于 0
     if (flowEnabled && c.flow_uniform_static_ratio !== '' && c.flow_uniform_static_ratio != null && toNum(c.flow_uniform_static_ratio) < 0) {
       errors.push('RF 固定偏移比率不能小于 0。');
     }
@@ -282,6 +319,7 @@ export function createTrainingActions({
   async function executeTraining() {
     state.loading.run = true;
     const runConfig = buildRunConfig(state.config, state.activeTrainingType);
+    attachBubbleClosedLoopActionHistory(runConfig, state.tasks, state.taskSummaries, 3);
     const launchMetadata = buildTaskMetadataFromConfig(runConfig, state.activeTrainingType);
     const labLaunchApi = getLabLaunchApi(state.activeTrainingType);
     syncFooterAction();
@@ -306,6 +344,30 @@ export function createTrainingActions({
       }
     }
 
+    // Feature 6：输出目录冲突检测（仅当 api.checkOutputConflict 存在时生效）
+    if (api.checkOutputConflict) {
+      try {
+        const conflictResp = await api.checkOutputConflict(
+          state.config.output_dir || '',
+          state.config.output_name || '',
+        );
+        const conflictData = conflictResp?.data;
+        if (conflictData?.conflict && conflictData.existing_files?.length > 0) {
+          const fileList = conflictData.existing_files.join('、');
+          const proceed = confirm(
+            `⚠ 输出目录中已存在同名 LoRA 文件：${fileList}\n\n继续训练将覆盖已有文件，是否继续？`
+          );
+          if (!proceed) {
+            state.loading.run = false;
+            syncFooterAction();
+            return;
+          }
+        }
+      } catch (_e) {
+        // 冲突检测失败不阻断训练
+      }
+    }
+
     try {
       if (!labLaunchApi) {
         const preflightResponse =await api.runPreflight(runConfig);
@@ -322,19 +384,67 @@ export function createTrainingActions({
         }
 
         state.preflight = preflightResponse.data;
-        if (state.preflight?.execution_profile_id) {
-          runConfig.execution_profile_id = state.preflight.execution_profile_id;
+        // Preflight is validation / display only — never authority for attention.
+        // Keep auto when user has no explicit override so launcher runtime wins.
+        const localBackend = String(runConfig.attention_backend || '').trim().toLowerCase();
+        const localMode = String(runConfig.attn_mode || runConfig.anima_attn_mode || '').trim().toLowerCase();
+        const userFlashOn = runConfig.flashattn === true
+          || runConfig.flashattn === 'true'
+          || runConfig.flashattn === 1
+          || localBackend === 'flash2'
+          || localMode === 'flash2'
+          || localMode === 'flash';
+        const userSageOn = runConfig.sageattn === true
+          || runConfig.sageattn === 'true'
+          || localBackend === 'sageattn'
+          || localMode === 'sageattn'
+          || localMode === 'sage';
+        const userXformersOn = runConfig.xformers === true
+          || runConfig.mem_eff_attn === true
+          || localBackend === 'xformers'
+          || localMode === 'xformers';
+        const userExplicitAttn = userFlashOn || userSageOn || userXformersOn
+          || runConfig.use_sdpa === true
+          || (localBackend && localBackend !== 'auto')
+          || (localMode && localMode !== 'auto' && localMode !== '');
+        const localProfile = String(runConfig.execution_profile_id || '').trim();
+        // Only fill empty profile for display; backend still re-inherits launcher
+        // when value is empty/standard pollution. Prefer leaving empty for inherit.
+        if (!localProfile && state.preflight?.execution_profile_id) {
+          // Keep empty so effective_execution_profile_id can inherit last_runtime.
+          // Do not write preflight standard into runConfig.
         }
-        if (state.preflight?.resolved_attention_backend) {
-          runConfig.attention_backend = state.preflight.resolved_attention_backend;
+        if (userFlashOn) {
+          runConfig.attention_backend = 'flash2';
+          runConfig.flashattn = true;
+        } else if (userSageOn) {
+          runConfig.attention_backend = 'sageattn';
+          runConfig.sageattn = true;
+        } else if (userXformersOn) {
+          runConfig.attention_backend = 'xformers';
+        } else if (!userExplicitAttn) {
+          // Default path: auto — do NOT write resolved_attention_backend back.
+          runConfig.attention_backend = 'auto';
         }
+        // else: keep explicit non-auto backend as-is
       } else {
         state.preflight = {
           can_start: true,
           errors: [],
-          warnings: ['实验训练由 Lulynx LAB 后端路由校验，已跳过普通 sd-scripts 预检。'],
+          warnings: ['该训练由 Lulynx LAB 后端路由校验，已跳过普通 sd-scripts 预检。'],
         };
       }
+
+      // Feature 4：训练前参数摘要确认卡
+      if (window.openTrainingSummary) {
+        const confirmed = await window.openTrainingSummary(state.config, state.activeTrainingType, runConfig);
+        if (!confirmed) {
+          state.loading.run = false;
+          syncFooterAction();
+          return;
+        }
+      }
+
       state._pendingTrainingMetadata = launchMetadata;
       state.activeTrainingTaskId = '';
       const response = labLaunchApi ? await labLaunchApi(runConfig) : await api.runTraining(runConfig);
@@ -347,15 +457,22 @@ export function createTrainingActions({
       trainingLaunched = true;
 
       state.trainingFailed = false;
-      state.lastMessage = response.message || (labLaunchApi ? '实验训练任务已提交。' : '训练已启动。');
+      const responseData = response?.data || {};
+      const responseQueued = isTaskQueued(responseData?.status || responseData?.native_status);
+      state.lastMessage = response.message || (responseQueued ? '训练已加入队列。' : (labLaunchApi ? '训练任务已提交。' : '训练已启动。'));
       showToast(state.lastMessage);
       resetTrainingMetrics();
-      const responseTaskId = response?.data?.task_id || response?.data?.id || '';
-      if (response?.data?.execution_profile_id) {
-        launchMetadata.execution_profile_id = response.data.execution_profile_id;
+      const responseTaskId = responseData.task_id || responseData.id || responseData.run_id || '';
+      if (responseData.execution_profile_id) {
+        launchMetadata.execution_profile_id = responseData.execution_profile_id;
       }
-      if (response?.data?.resolved_attention_backend) {
-        launchMetadata.attention_backend = response.data.resolved_attention_backend;
+      if (responseData.resolved_attention_backend) {
+        launchMetadata.attention_backend = responseData.resolved_attention_backend;
+      }
+      if (responseQueued) {
+        launchMetadata.queue_position = responseData.queue_position;
+        launchMetadata.queue_depth = responseData.queue_depth;
+        launchMetadata.queue_message = responseData.message || '';
       }
       if (responseTaskId) state.activeTrainingTaskId = responseTaskId;
       if (responseTaskId) rememberTrainingTaskMetadata(responseTaskId, launchMetadata);
@@ -365,12 +482,12 @@ export function createTrainingActions({
       const freshTasks = tasksResponse?.data?.tasks || [];
       const localHistory = await loadLocalTaskHistory();
       for (const t of freshTasks) {
-        // 为刚启动的新任务注入元数据，后端 dump 只返回 id/status/returncode
-        // 对 RUNNING 任务且缺少 output_name 的注入元数据（新任务 or 之前漏注入的）
-        if (t.status === 'RUNNING') {
-          const meta = getPendingTrainingMetadata(t.id) || (!state.activeTrainingTaskId ? launchMetadata : null);
+        // 为刚提交的新任务注入元数据，queued/running 都属于前端可见的活跃训练。
+        if (isTaskActive(t)) {
+          const taskId = getTaskId(t);
+          const meta = getPendingTrainingMetadata(taskId) || (!state.activeTrainingTaskId ? launchMetadata : null);
           if (meta) {
-            if (!state.activeTrainingTaskId) rememberTrainingTaskMetadata(t.id, meta);
+            if (!state.activeTrainingTaskId) rememberTrainingTaskMetadata(taskId, meta);
             applyTaskMetadata(t, meta, { force: false });
           }
         }

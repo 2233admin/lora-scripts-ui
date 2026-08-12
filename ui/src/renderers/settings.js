@@ -100,6 +100,16 @@ export function createSettingsRenderer({ state, t, renderSlot, applyAndPersistLa
                 <span class="slider round"></span>
               </label>
             </div>
+            <div class="settings-row">
+              <div>
+                <label>方框式开关与聚合</label>
+                <p class="field-desc">开启后布尔参数使用方框点选样式，且同一分段（模型、数据参数等）内的所有开关会聚集为一个紧凑区块；关闭后回到独立卡片 + 滑动开关。</p>
+              </div>
+              <label class="switch switch-compact">
+                <input type="checkbox" id="compact-checkbox-switches-toggle" ${state.compactCheckboxSwitches ? 'checked' : ''}>
+                <span class="slider round"></span>
+              </label>
+            </div>
             <div class="settings-row settings-slider-row">
               <label>左侧资源管理器宽度</label>
               <div class="settings-slider-control">
@@ -174,6 +184,12 @@ export function createSettingsRenderer({ state, t, renderSlot, applyAndPersistLa
       state.configWaterfallTwoColumn = e.target.checked;
       localStorage.setItem('sd-rescripts:config-waterfall-two-column', state.configWaterfallTwoColumn ? 'true' : 'false');
       showToast(state.configWaterfallTwoColumn ? '已开启瀑布流紧凑双排' : '已关闭瀑布流紧凑双排');
+    });
+    $('#compact-checkbox-switches-toggle')?.addEventListener('change', (e) => {
+      state.compactCheckboxSwitches = e.target.checked;
+      localStorage.setItem('sd-rescripts:compact-checkbox-switches', state.compactCheckboxSwitches ? 'true' : 'false');
+      showToast(state.compactCheckboxSwitches ? '已开启方框式开关聚合' : '已关闭方框式开关聚合');
+      // 配置页下次进入时生效；若当前就在配置页，切回配置页即自动重渲染
     });
     $('#navigator-width-slider')?.addEventListener('input', (e) => window.updateLayoutWidth('navigator', e.target.value, false));
     $('#navigator-width-slider')?.addEventListener('change', (e) => window.updateLayoutWidth('navigator', e.target.value, true));

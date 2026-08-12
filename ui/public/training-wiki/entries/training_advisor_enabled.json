@@ -2,8 +2,17 @@
   "key": "training_advisor_enabled",
   "title": "Training Advisor (训练预检)",
   "category": "训练 / 预检",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora", "finetune", "flux-lora"],
-  "layers": ["训练控制层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora",
+    "finetune",
+    "flux-lora"
+  ],
+  "layers": [
+    "训练控制层"
+  ],
   "standard": {
     "summary": "训练前自动检查配置合理性、数据集质量、运行时依赖，生成预检报告。提前发现潜在问题，避免训练中途失败。",
     "effect": "检查项包括：学习率范围是否合理、数据集图片数量和格式、缓存是否完整、显存是否够用、优化器兼容性等。报告写入 training_advisor_report.json。",
@@ -17,5 +26,8 @@
     "tradeoffs": "training_advisor_log_summary 在日志中输出简要报告。",
     "codePath": "core/warehouse/training_features/preflight.py:PreflightOrchestrator → pre-training checks"
   },
-  "relatedConfigs": ["training_advisor_report_name", "training_advisor_log_summary"]
+  "relatedConfigs": [
+    "training_advisor_report_name",
+    "training_advisor_log_summary"
+  ]
 }

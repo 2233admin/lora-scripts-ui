@@ -2,8 +2,14 @@
   "key": "native_cache_mode",
   "title": "DiT 缓存模式",
   "category": "DiT / 缓存",
-  "appliesTo": ["anima-lora", "newbie-lora"],
-  "layers": ["数据层", "缓存层"],
+  "appliesTo": [
+    "anima-lora",
+    "newbie-lora"
+  ],
+  "layers": [
+    "数据层",
+    "缓存层"
+  ],
   "standard": {
     "summary": "控制 Anima/Newbie DiT 模型的 latent 缓存策略。DiT 模型的 VAE encode 比 UNet 更昂贵，缓存策略对训练速度影响巨大。",
     "effect": "cache_first 先全量缓存再训练（最快但需磁盘空间）；online_cache 边训练边缓存；raw_online 不缓存直接训练（最慢）。",
@@ -17,5 +23,10 @@
     "tradeoffs": "anima_cache_mode 是 native_cache_mode 的 Anima 专用别名。",
     "codePath": "trainer.py:cache_mode dispatch → cache_first/online_cache/raw_online/rebuild_cache"
   },
-  "relatedConfigs": ["cache_latents", "cache_latents_to_disk", "latent_cache_disk_format", "trust_cache"]
+  "relatedConfigs": [
+    "cache_latents",
+    "cache_latents_to_disk",
+    "latent_cache_disk_format",
+    "trust_cache"
+  ]
 }

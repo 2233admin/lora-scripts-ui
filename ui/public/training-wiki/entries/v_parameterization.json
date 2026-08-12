@@ -2,8 +2,14 @@
   "key": "v_parameterization",
   "title": "V-Prediction (V 参数化)",
   "category": "训练 / 参数化",
-  "appliesTo": ["sdxl-lora", "sd-lora", "finetune"],
-  "layers": ["Loss 层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "finetune"
+  ],
+  "layers": [
+    "Loss 层"
+  ],
   "standard": {
     "summary": "模型预测 v = α·x_0 - σ·ε（velocity）而非 ε（noise）。V-prediction 在高噪声 timestep 更稳定，是 SD 2.x 和部分 SDXL 模型的标准。",
     "effect": "v-prediction 让模型直接预测从噪声到图像的「速度向量」。在大 timestep 时比 epsilon prediction 数值更稳定。",
@@ -17,5 +23,9 @@
     "tradeoffs": "scale_v_pred_loss_like_noise_pred 对 v-pred loss 做额外缩放以接近 epsilon pred 的行为。",
     "codePath": "trainer.py:v_parameterization → v_target = alpha * x0 - sigma * eps → MSE loss"
   },
-  "relatedConfigs": ["min_snr_gamma", "scale_v_pred_loss_like_noise_pred", "zero_terminal_snr"]
+  "relatedConfigs": [
+    "min_snr_gamma",
+    "scale_v_pred_loss_like_noise_pred",
+    "zero_terminal_snr"
+  ]
 }

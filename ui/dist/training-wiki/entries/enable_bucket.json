@@ -2,8 +2,17 @@
   "key": "enable_bucket",
   "title": "多分辨率桶",
   "category": "数据集 / 分辨率",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora", "finetune", "flux-lora"],
-  "layers": ["数据层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora",
+    "finetune",
+    "flux-lora"
+  ],
+  "layers": [
+    "数据层"
+  ],
   "standard": {
     "summary": "自动将不同宽高比的图片分配到不同分辨率桶（Aspect Ratio Bucket）中训练。同一 batch 内图片分辨率相近，不同 batch 可以分辨率不同。避免强制缩放导致的图像拉伸或裁切，保留原始构图信息。",
     "effect": "开启后竖图和横图混合训练时效果显著——模型学到更自然的宽高比泛化。例如训练数据有 3:4 竖图和 16:9 横图，bucket 会让它们分别进入不同的 (768,1024) 和 (1024,576) 桶，而不是全部 resize 到 1024×1024。",
@@ -24,5 +33,13 @@
     "tradeoffs": "resolution_aware_batch_enabled 可以根据桶分辨率动态调整 batch_size——小分辨率桶用更大 batch（因为显存占用小），大分辨率桶用更小 batch。这能在总显存不变的情况下提高吞吐量。bucket_reso_steps 越小桶越多（更精确的宽高比匹配），但每个桶的样本数可能太少导致 batch 凑不齐。",
     "codePath": "dataset_loader.py:BucketManager → BucketBatchSampler → DataLoader per-bucket batching"
   },
-  "relatedConfigs": ["resolution", "min_bucket_reso", "max_bucket_reso", "bucket_reso_steps", "bucket_no_upscale", "bucket_selection_mode", "resolution_aware_batch_enabled"]
+  "relatedConfigs": [
+    "resolution",
+    "min_bucket_reso",
+    "max_bucket_reso",
+    "bucket_reso_steps",
+    "bucket_no_upscale",
+    "bucket_selection_mode",
+    "resolution_aware_batch_enabled"
+  ]
 }

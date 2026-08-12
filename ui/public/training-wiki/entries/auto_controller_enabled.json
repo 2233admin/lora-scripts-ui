@@ -2,8 +2,15 @@
   "key": "auto_controller_enabled",
   "title": "Auto Controller (自动训练控制)",
   "category": "训练 / 自动化",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora"],
-  "layers": ["训练控制层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora"
+  ],
+  "layers": [
+    "训练控制层"
+  ],
   "standard": {
     "summary": "自动监控训练状态并做出决策：自动冻结文本编码器（防止过拟合）、智能早停（loss 不再改善时停止）、自适应学习率衰减。",
     "effect": "减少手动调参需求。auto_freeze_te 在 TE 开始过拟合时自动冻结；smart_early_stop 在 loss 平台期超过阈值时停止训练。",
@@ -17,5 +24,10 @@
     "tradeoffs": "ac_enable_smart_lr_decay 和 lr_scheduler 的 loss_gated_cosine 可能冲突——建议只选一个。",
     "codePath": "core/training_components/auto_controller.py:AutoController → per-step evaluation → freeze/stop/decay actions"
   },
-  "relatedConfigs": ["auto_freeze_te", "smart_early_stop", "smart_lr_decay", "clip_drift_threshold"]
+  "relatedConfigs": [
+    "auto_freeze_te",
+    "smart_early_stop",
+    "smart_lr_decay",
+    "clip_drift_threshold"
+  ]
 }

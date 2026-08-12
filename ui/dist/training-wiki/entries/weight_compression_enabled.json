@@ -2,8 +2,18 @@
   "key": "weight_compression_enabled",
   "title": "权重压缩 (FP8/INT8)",
   "category": "显存优化 / 压缩",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora", "finetune", "flux-lora"],
-  "layers": ["显存层", "模型层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora",
+    "finetune",
+    "flux-lora"
+  ],
+  "layers": [
+    "显存层",
+    "模型层"
+  ],
   "standard": {
     "summary": "将冻结的底模权重压缩为 FP8 或 INT8 格式，减少显存占用。可训练参数（LoRA）保持原始精度。",
     "effect": "weight_compression_target 选择压缩范围（text_encoder/backbone/both）。weight_compression_format 选择格式（fp8_e4m3）。weight_compression_preset 提供预设（stable_backbone_int8 等）。",
@@ -17,5 +27,10 @@
     "tradeoffs": "weight_compression_allow_offload_combo 允许与 CPU offload 组合使用。",
     "codePath": "core/weight_compression/ → per-layer FP8/INT8 quantization → dequantize on access"
   },
-  "relatedConfigs": ["weight_compression_target", "weight_compression_format", "weight_compression_preset", "compression_companion_enabled"]
+  "relatedConfigs": [
+    "weight_compression_target",
+    "weight_compression_format",
+    "weight_compression_preset",
+    "compression_companion_enabled"
+  ]
 }

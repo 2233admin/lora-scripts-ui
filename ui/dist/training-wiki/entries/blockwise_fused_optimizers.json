@@ -2,8 +2,18 @@
   "key": "blockwise_fused_optimizers",
   "title": "融合优化器 (Block-Fused)",
   "category": "优化器 / 融合",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora", "finetune", "flux-lora"],
-  "layers": ["优化器层", "性能层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora",
+    "finetune",
+    "flux-lora"
+  ],
+  "layers": [
+    "优化器层",
+    "性能层"
+  ],
   "standard": {
     "summary": "将 AdamW 更新分解为多个融合的 CUDA kernel，减少 kernel launch 开销和中间显存分配。",
     "effect": "blockwise_fused_optimizers 将 momentum update、variance update、param update 融合为单个 kernel 调用。减少 kernel launch 次数（从 3 次减到 1 次）和显存中间分配。",
@@ -17,5 +27,8 @@
     "tradeoffs": "需要 CUDA 环境支持。实现复杂度高。",
     "codePath": "core/lulynx/ → fused AdamW kernel → single-call optimizer update"
   },
-  "relatedConfigs": ["fused_optimizer", "blockwise_fused_optimizers"]
+  "relatedConfigs": [
+    "fused_optimizer",
+    "blockwise_fused_optimizers"
+  ]
 }

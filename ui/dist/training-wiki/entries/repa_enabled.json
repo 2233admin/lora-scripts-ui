@@ -2,8 +2,14 @@
   "key": "repa_enabled",
   "title": "REPA (表示对齐辅助 Loss)",
   "category": "Loss / 高级",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora"],
-  "layers": ["Loss 层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora"
+  ],
+  "layers": [
+    "Loss 层"
+  ],
   "standard": {
     "summary": "REPA（Representation Alignment）在标准 diffusion loss 之外添加一个辅助 loss，让 UNet 中间层的表示与外部视觉模型（如 DINOv2/CLIP）的表示对齐，提升生成质量。",
     "effect": "repa_loss_type 控制对齐方式（cosine/mse）。repa_loss_weight 控制辅助 loss 的权重。repa_target_modules 指定哪些 UNet 层参与对齐。",
@@ -17,5 +23,11 @@
     "tradeoffs": "softrepa_schedule 控制 sigma 相关的权重调度。",
     "codePath": "core/lulynx_trainer/repa.py → DINOv2 feature alignment → auxiliary loss"
   },
-  "relatedConfigs": ["repa_target_modules", "repa_loss_type", "repa_loss_weight", "repa_projection_dim", "softrepa_enabled"]
+  "relatedConfigs": [
+    "repa_target_modules",
+    "repa_loss_type",
+    "repa_loss_weight",
+    "repa_projection_dim",
+    "softrepa_enabled"
+  ]
 }

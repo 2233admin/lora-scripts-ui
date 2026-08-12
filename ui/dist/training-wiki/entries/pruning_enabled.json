@@ -2,8 +2,15 @@
   "key": "pruning_enabled",
   "title": "网络剪枝",
   "category": "训练 / 实验性",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora"],
-  "layers": ["适配器层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora"
+  ],
+  "layers": [
+    "适配器层"
+  ],
   "standard": {
     "summary": "训练过程中定期剪除不重要的 LoRA 通道（基于权重大小或梯度），实现模型压缩和正则化。",
     "effect": "pruning_target_ratio=0.5 表示剪掉 50% 的通道。pruning_interval=100 控制剪枝频率。dynamic_pruning_enabled 允许自适应调整剪枝比例。",
@@ -17,5 +24,10 @@
     "tradeoffs": "过度剪枝会导致质量下降。dynamic_pruning 比固定比例更安全。",
     "codePath": "training_loop.py:pruning → importance scoring → channel mask → gradient zeroing"
   },
-  "relatedConfigs": ["dynamic_pruning_enabled", "pruning_interval", "pruning_target_ratio", "prune_warmup_ratio"]
+  "relatedConfigs": [
+    "dynamic_pruning_enabled",
+    "pruning_interval",
+    "pruning_target_ratio",
+    "prune_warmup_ratio"
+  ]
 }

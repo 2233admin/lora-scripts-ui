@@ -2,8 +2,18 @@
   "key": "rm_enable_adaptive_batch",
   "title": "Resource Manager (资源管理器)",
   "category": "性能 / 资源",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora", "finetune", "flux-lora"],
-  "layers": ["运行时层", "显存层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora",
+    "finetune",
+    "flux-lora"
+  ],
+  "layers": [
+    "运行时层",
+    "显存层"
+  ],
   "standard": {
     "summary": "Resource Manager 监控显存使用并动态调整 batch size、梯度累积步数和 checkpoint 策略，在显存压力下自动优化而不崩溃。",
     "effect": "rm_enable_adaptive_batch 允许自动调整 batch size（min~max 范围）。rm_enable_adaptive_accumulation 允许调整梯度累积。rm_vram_warning_threshold 控制预警阈值。",
@@ -17,5 +27,11 @@
     "tradeoffs": "自适应调整会改变 effective batch size，可能影响收敛速度。",
     "codePath": "core/resource_manager/ → VRAM monitor → threshold dispatch → adaptive batch/accumulation/offload"
   },
-  "relatedConfigs": ["rm_vram_warning_threshold", "rm_vram_critical_threshold", "rm_min_batch_size", "rm_max_batch_size", "rm_enable_adaptive_checkpointing"]
+  "relatedConfigs": [
+    "rm_vram_warning_threshold",
+    "rm_vram_critical_threshold",
+    "rm_min_batch_size",
+    "rm_max_batch_size",
+    "rm_enable_adaptive_checkpointing"
+  ]
 }

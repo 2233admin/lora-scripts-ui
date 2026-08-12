@@ -2,8 +2,16 @@
   "key": "cache_text_encoder_outputs",
   "title": "缓存文本编码器输出",
   "category": "缓存 / Caption",
-  "appliesTo": ["sdxl-lora", "anima-lora", "newbie-lora", "finetune"],
-  "layers": ["文本编码层", "数据缓存层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "anima-lora",
+    "newbie-lora",
+    "finetune"
+  ],
+  "layers": [
+    "文本编码层",
+    "数据缓存层"
+  ],
   "standard": {
     "summary": "把 caption 经过文本编码器后的结果提前缓存，训练时直接读取。",
     "effect": "减少文本编码器计算和显存占用，适合 caption 固定的训练。",
@@ -16,5 +24,10 @@
     "expectedImpact": "降低 TE 显存与耗时，尤其是 SDXL 双文本编码器和 DiT 文本模型较重时。",
     "tradeoffs": "会限制训练时动态 caption 策略；改 caption、触发词、dropout 或混合比例后应重建缓存。"
   },
-  "relatedConfigs": ["caption_source_mix_enabled", "shuffle_caption", "caption_dropout_rate", "network_train_text_encoder_only"]
+  "relatedConfigs": [
+    "caption_source_mix_enabled",
+    "shuffle_caption",
+    "caption_dropout_rate",
+    "network_train_text_encoder_only"
+  ]
 }

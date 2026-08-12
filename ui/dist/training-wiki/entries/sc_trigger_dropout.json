@@ -2,8 +2,16 @@
   "key": "sc_trigger_dropout",
   "title": "Smart Caption (智能丢弃)",
   "category": "Caption / 高级",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora"],
-  "layers": ["数据层", "Caption 层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora"
+  ],
+  "layers": [
+    "数据层",
+    "Caption 层"
+  ],
   "standard": {
     "summary": "Smart Caption 根据标签的语义角色（触发词、风格词、质量词、内容词、修饰词）施加不同概率的丢弃。比全局 caption_dropout_rate 更精细。",
     "effect": "sc_trigger_dropout=0 保持触发词不变；sc_style_dropout=0.05 很少丢弃风格词；sc_quality_dropout=0.3 经常丢弃质量标签（如 masterpiece）；sc_content_dropout=0.15 适度丢弃内容词。",
@@ -17,5 +25,11 @@
     "tradeoffs": "sc_locked_tags 指定不受 dropout 影响的标签列表。",
     "codePath": "dataset/elements.py:smart_caption_dropout() → per-category dropout"
   },
-  "relatedConfigs": ["sc_style_dropout", "sc_quality_dropout", "sc_content_dropout", "sc_modifier_dropout", "sc_locked_tags"]
+  "relatedConfigs": [
+    "sc_style_dropout",
+    "sc_quality_dropout",
+    "sc_content_dropout",
+    "sc_modifier_dropout",
+    "sc_locked_tags"
+  ]
 }

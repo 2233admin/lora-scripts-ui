@@ -2,8 +2,16 @@
   "key": "adaptive_loss_weighting_enabled",
   "title": "自适应 Loss 加权",
   "category": "正则 / Loss",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora", "finetune"],
-  "layers": ["Loss 层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora",
+    "finetune"
+  ],
+  "layers": [
+    "Loss 层"
+  ],
   "standard": {
     "summary": "min_snr_gamma 的可学习版本——训练一组参数（gamma/offset/scale）自适应调整每个 timestep 的 loss 权重，不需要手动选择 gamma 值。",
     "effect": "自动学习最优的 timestep 加权曲线。比固定 min_snr_gamma 更灵活，但增加少量可训练参数。",
@@ -17,5 +25,9 @@
     "tradeoffs": "adaptive_loss_weighting_init_gamma 控制初始 gamma 值（默认 5.0）。",
     "codePath": "core/lulynx_trainer/adaptive_loss_weighting.py:AdaptiveLossWeighter → learnable SNR weights"
   },
-  "relatedConfigs": ["adaptive_loss_weighting_lr", "adaptive_loss_weighting_init_gamma", "min_snr_gamma"]
+  "relatedConfigs": [
+    "adaptive_loss_weighting_lr",
+    "adaptive_loss_weighting_init_gamma",
+    "min_snr_gamma"
+  ]
 }

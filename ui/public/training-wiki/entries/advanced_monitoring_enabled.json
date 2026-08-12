@@ -2,8 +2,17 @@
   "key": "advanced_monitoring_enabled",
   "title": "高级训练监控",
   "category": "训练 / 监控",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora", "finetune", "flux-lora"],
-  "layers": ["训练控制层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora",
+    "finetune",
+    "flux-lora"
+  ],
+  "layers": [
+    "训练控制层"
+  ],
   "standard": {
     "summary": "启用高级训练诊断功能：attention 熵监控、activation 漂移检测、Hessian trace 估算、梯度余弦相似度分析、LR finder 等。",
     "effect": "提供比标准 loss/lr 日志更深入的训练状态洞察。帮助诊断 rank collapse、过拟合、学习率不当等问题。",
@@ -17,5 +26,12 @@
     "tradeoffs": "各诊断有独立的计算开销。Hessian trace 开销最大。",
     "codePath": "training_loop.py:per-step diagnostics → attention entropy / activation drift / Hessian trace / gradient cosine"
   },
-  "relatedConfigs": ["attn_entropy_interval", "act_drift_interval", "hessian_trace_interval", "grad_cosine_enabled", "lr_finder_enabled", "forgetting_probe_enabled"]
+  "relatedConfigs": [
+    "attn_entropy_interval",
+    "act_drift_interval",
+    "hessian_trace_interval",
+    "grad_cosine_enabled",
+    "lr_finder_enabled",
+    "forgetting_probe_enabled"
+  ]
 }

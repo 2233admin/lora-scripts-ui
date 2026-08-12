@@ -32,7 +32,7 @@ export function renderTurboCore(container) {
           <p class="turbocore-muted">当前按钮只做前端适配：如果未来后端提供 <code>/api/turbocore/status</code>，这里会显示真实状态；接口不存在或后端未启动时不会影响 UI。</p>
           <div class="turbocore-actions">
             <button class="btn btn-primary" type="button" onclick="turboCoreProbeStatus()">${_ico('activity', 12)} 探测 TurboCore</button>
-            <button class="btn btn-outline" type="button" onclick="turboCoreCopyFlags()">${_ico('code', 12)} 复制实验标记</button>
+            <button class="btn btn-outline" type="button" onclick="turboCoreCopyFlags()">${_ico('code', 12)} 复制标记</button>
           </div>
           <pre id="turbocore-status" class="turbocore-status">未探测。TurboCore 入口已在开发者模式下启用。</pre>
         </div>
@@ -87,7 +87,7 @@ export async function turboCoreCopyFlags() {
   try {
     await navigator.clipboard.writeText(flags);
     const el = document.getElementById('turbocore-status');
-    if (el) el.textContent = '已复制实验标记：\n' + flags;
+    if (el) el.textContent = '已复制标记：\n' + flags;
   } catch (_e) {
     const el = document.getElementById('turbocore-status');
     if (el) el.textContent = flags;

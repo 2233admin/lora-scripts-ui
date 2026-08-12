@@ -2,8 +2,17 @@
   "key": "cooldown_every_n_epochs",
   "title": "热管理 (GPU 降温)",
   "category": "训练 / 运维",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora", "finetune", "flux-lora"],
-  "layers": ["训练控制层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora",
+    "finetune",
+    "flux-lora"
+  ],
+  "layers": [
+    "训练控制层"
+  ],
   "standard": {
     "summary": "每隔 N 个 epoch 暂停训练让 GPU 降温，防止长时间高负载导致过热降频或硬件损伤。",
     "effect": "cooldown_every_n_epochs=3 表示每 3 个 epoch 暂停一次。cooldown_minutes=10 表示暂停 10 分钟。cooldown_until_temp=0 表示使用固定时间而非温度阈值。",
@@ -17,5 +26,11 @@
     "tradeoffs": "暂停期间 GPU 空闲。总训练时间增加。",
     "codePath": "training_loop.py:cooldown → pause training → GPU temperature monitoring → resume"
   },
-  "relatedConfigs": ["cooldown_minutes", "cooldown_until_temp", "cooldown_poll_seconds", "gpu_power_limit_w", "pause_enabled"]
+  "relatedConfigs": [
+    "cooldown_minutes",
+    "cooldown_until_temp",
+    "cooldown_poll_seconds",
+    "gpu_power_limit_w",
+    "pause_enabled"
+  ]
 }

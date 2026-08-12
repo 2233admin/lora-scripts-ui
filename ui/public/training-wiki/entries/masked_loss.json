@@ -2,8 +2,16 @@
   "key": "masked_loss",
   "title": "Masked Loss (遮罩损失)",
   "category": "正则 / Loss",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora", "finetune"],
-  "layers": ["Loss 层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora",
+    "finetune"
+  ],
+  "layers": [
+    "Loss 层"
+  ],
   "standard": {
     "summary": "使用 alpha mask 对 loss 进行区域加权——只有 mask 覆盖的区域参与 loss 计算。让模型专注于学习特定区域（如人物、物体）。",
     "effect": "masked_loss=True 时，每张图需要一个对应的 mask（图片的 alpha 通道或 *_mask.png sidecar 文件）。mask=1 的区域正常计算 loss，mask=0 的区域 loss 为 0。",
@@ -17,5 +25,8 @@
     "tradeoffs": "与 concept_geometry_loss_weighting 可以叠加——区域 mask × 概念权重。",
     "codePath": "training_loop.py:loss = loss * loss_mask / loss_mask.mean()"
   },
-  "relatedConfigs": ["alpha_mask", "strict_masked_loss"]
+  "relatedConfigs": [
+    "alpha_mask",
+    "strict_masked_loss"
+  ]
 }

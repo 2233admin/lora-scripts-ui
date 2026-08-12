@@ -2,8 +2,16 @@
   "key": "turbocore_features",
   "title": "TurboCore (原生加速内核)",
   "category": "性能 / 内核",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora"],
-  "layers": ["性能层", "优化器层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora"
+  ],
+  "layers": [
+    "性能层",
+    "优化器层"
+  ],
   "standard": {
     "summary": "TurboCore 是 Lulynx 的原生 CUDA 加速内核集合，提供 AdamW 优化器、attention 计算、数据处理等的高性能 CUDA 实现。",
     "effect": "turbocore_features 是一个列表，启用特定的加速特性。turbocore_strict=True 时不使用 fallback。turbocore_profile 控制加速级别（basic/advanced/expert）。",
@@ -17,5 +25,10 @@
     "tradeoffs": "turbocore_native_update_dispatch_enabled 是实验性的原生更新调度路径。",
     "codePath": "core/turbocore/ → CUDA AdamW kernel + prefetch + FP8 support"
   },
-  "relatedConfigs": ["turbocore_strict", "turbocore_allow_fallback", "turbocore_profile", "turbocore_workspace_mb"]
+  "relatedConfigs": [
+    "turbocore_strict",
+    "turbocore_allow_fallback",
+    "turbocore_profile",
+    "turbocore_workspace_mb"
+  ]
 }

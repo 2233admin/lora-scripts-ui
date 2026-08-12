@@ -2,8 +2,12 @@
   "key": "newbie_lora_target",
   "title": "Newbie LoRA 目标",
   "category": "Newbie / 配置",
-  "appliesTo": ["newbie-lora"],
-  "layers": ["适配器层"],
+  "appliesTo": [
+    "newbie-lora"
+  ],
+  "layers": [
+    "适配器层"
+  ],
   "standard": {
     "summary": "Newbie 模型的 LoRA 注入范围预设。minimal 只注入最关键的层；balanced 注入 attention + 部分 FFN；full 注入所有层。",
     "effect": "minimal 参数最少训练最快；balanced 是推荐默认值；full 参数最多但质量天花板最高。",
@@ -17,5 +21,10 @@
     "tradeoffs": "newbie_target_modules 允许手动指定目标模块列表（覆盖预设）。newbie_force_cache_only 强制使用缓存路径。",
     "codePath": "trainer.py:Newbie route → lora_target preset → layer injection"
   },
-  "relatedConfigs": ["newbie_diffusers_path", "newbie_gemma3_prompt", "newbie_block_residency", "newbie_adapter_type"]
+  "relatedConfigs": [
+    "newbie_diffusers_path",
+    "newbie_gemma3_prompt",
+    "newbie_block_residency",
+    "newbie_adapter_type"
+  ]
 }

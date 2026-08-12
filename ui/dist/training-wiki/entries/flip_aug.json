@@ -2,8 +2,17 @@
   "key": "flip_aug",
   "title": "数据增强 (翻转/色彩/裁切)",
   "category": "数据集 / 增强",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora", "finetune", "flux-lora"],
-  "layers": ["数据层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora",
+    "finetune",
+    "flux-lora"
+  ],
+  "layers": [
+    "数据层"
+  ],
   "standard": {
     "summary": "训练时对图片施加随机变换：flip_aug 水平翻转，color_aug 随机色彩抖动，random_crop 随机裁切。增加数据多样性，减少过拟合。",
     "effect": "flip_aug 将数据量有效翻倍（每张图有原图和镜像两个版本）。color_aug 增加色彩泛化。random_crop 增加构图多样性。",
@@ -17,5 +26,10 @@
     "tradeoffs": "albumentations_mask_replay 确保同一张图的 mask 和 image 受到相同的空间变换。",
     "codePath": "dataset/image_preprocess.py:augmentation pipeline → PIL transforms → tensor"
   },
-  "relatedConfigs": ["flip_aug", "color_aug", "random_crop", "albumentations_enabled"]
+  "relatedConfigs": [
+    "flip_aug",
+    "color_aug",
+    "random_crop",
+    "albumentations_enabled"
+  ]
 }

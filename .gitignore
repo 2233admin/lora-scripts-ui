@@ -28,3 +28,8 @@ ui/task_history.json
 /.claude
 .mcp.json
 
+
+# Tooling junk
+.memsearch/
+/training-wiki/
+ui/vite.config.js.timestamp-*.mjs

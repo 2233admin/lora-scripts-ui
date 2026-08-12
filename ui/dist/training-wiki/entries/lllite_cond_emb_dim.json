@@ -2,8 +2,13 @@
   "key": "lllite_cond_emb_dim",
   "title": "ControlNet-LLLite (轻量控制)",
   "category": "训练 / 适配器",
-  "appliesTo": ["sdxl-lora", "sd-lora"],
-  "layers": ["适配器层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora"
+  ],
+  "layers": [
+    "适配器层"
+  ],
   "standard": {
     "summary": "ControlNet-LLLite 是 ControlNet 的轻量替代——在 UNet 上注入小型适配器来接收条件图像，参数量远少于完整 ControlNet。",
     "effect": "lllite_cond_emb_dim 控制条件图像的嵌入维度（默认 32）。lllite_mlp_dim 控制适配器的瓶颈维度（默认 64）。lllite_dropout 控制适配器内的 dropout。",
@@ -17,5 +22,11 @@
     "tradeoffs": "控制精度不如完整 ControlNet。",
     "codePath": "core/lulynx/ → ControlNet-LLLite adapter → UNet layer injection"
   },
-  "relatedConfigs": ["lllite_mlp_dim", "lllite_dropout", "lllite_skip_input_blocks", "lllite_skip_output_blocks", "controlnet_model"]
+  "relatedConfigs": [
+    "lllite_mlp_dim",
+    "lllite_dropout",
+    "lllite_skip_input_blocks",
+    "lllite_skip_output_blocks",
+    "controlnet_model"
+  ]
 }

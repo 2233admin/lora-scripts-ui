@@ -4,15 +4,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LoRA v1.6.0 | RE-SCRIPTS</title>
-    <link rel="icon" type="image/png" href="/favicon-launcher.png">
-    <!-- 启动器同款字体：Space Grotesk(标题) + JetBrains Mono(等宽)；离线自动 fallback 系统字体 -->
+    <title>Lulynx Trainer</title>
+    <link rel="icon" type="image/x-icon" href="./favicon.ico">
+    <link rel="shortcut icon" type="image/x-icon" href="./favicon.ico">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/src/style.css">
-    <!-- 视觉增强层：在 style.css 之后加载，补齐启动器的字体/质感效果，不修改原样式 -->
+    <!-- 视觉增强层：强调色衍生变量、启动器同款字体、focus/hover 质感（非侵入，需在 style.css 之后加载） -->
     <link rel="stylesheet" href="/src/launcher-polish.css">
+    <link rel="stylesheet" href="/src/resourceCenter.css">
+    <link rel="stylesheet" href="/src/features/modelArchDetection.css">
 </head>
 
 <body class="dark-theme">
@@ -20,8 +22,8 @@
         <!-- Sidebar Navigation -->
         <aside class="sidebar">
             <div class="logo">
-                <div class="logo-text">LORA<span>RESCRIPTS</span></div>
-                <div class="logo-version">v1.6.0</div>
+                <div class="logo-text">LULYNX<span>TRAINER</span></div>
+                <div class="logo-version" id="app-version-display">...</div>
             </div>
             <nav class="nav-links">
                 <div class="expand-toggle-btn" id="navigator-expand-btn">
@@ -40,6 +42,9 @@
                         <use href="#icon-training"></use>
                     </svg>
                     <span data-i18n="nav.training">训练</span>
+                </a>
+                <a href="#" class="nav-item" data-module="resources" title="Resources">
+                    <span class="nav-icon">◈</span><span class="nav-label">资源中心</span>
                 </a>
                 <a href="#" class="nav-item" data-module="dataset" title="Dataset">
                     <svg class="icon">
@@ -69,13 +74,19 @@
                     <svg class="icon">
                         <use href="#icon-rocket"></use>
                     </svg>
-                    <span>快速训练流程</span>
+                    <span>向导</span>
+                </a>
+                <a href="#" class="nav-item" data-module="guide" title="Guide">
+                    <svg class="icon">
+                        <use href="#icon-book-open"></use>
+                    </svg>
+                    <span>教程</span>
                 </a>
                 <a href="#" class="nav-item" data-module="plugins" title="Plugins">
                     <svg class="icon">
                         <use href="#icon-package"></use>
                     </svg>
-                    <span>插件中心</span>
+                    <span>插件</span>
                 </a>
                 <a href="#" class="nav-item developer-only hidden" data-module="turbocore" title="TurboCore">
                     <svg class="icon">
@@ -85,29 +96,22 @@
                 </a>
             </nav>
             <div class="sidebar-footer">
-                <a href="#" class="nav-item nav-item-about" data-module="about" title="About">
+                <a href="#" class="nav-item" data-module="about" title="About">
                     <svg class="icon">
                         <use href="#icon-support"></use>
                     </svg>
                     <span data-i18n="nav.about">关于</span>
                 </a>
-                <div class="theme-toggles-row">
-                    <div class="theme-toggle" id="style-toggle" title="切换风格主题">
-                        <svg class="icon">
-                            <use href="#icon-layout"></use>
-                        </svg>
-                    </div>
-                    <div class="theme-toggle" id="theme-toggle" title="切换颜色模式">
-                        <svg class="icon moon-icon">
-                            <use href="#icon-moon"></use>
-                        </svg>
-                        <svg class="icon sun-icon">
-                            <use href="#icon-sun"></use>
-                        </svg>
-                        <svg class="icon clay-icon" style="display:none">
-                               <use href="#icon-clay"></use>
-                        </svg>
-                    </div>
+                <div class="theme-toggle" id="theme-toggle">
+                    <svg class="icon moon-icon">
+                        <use href="#icon-moon"></use>
+                    </svg>
+                    <svg class="icon sun-icon">
+                        <use href="#icon-sun"></use>
+                    </svg>
+                    <svg class="icon clay-icon" style="display:none">
+                        <use href="#icon-clay"></use>
+                    </svg>
                 </div>
             </div>
         </aside>
@@ -132,7 +136,9 @@
                         <ul class="group-list">
                             <li class="active">SDXL</li>
                             <li>FLUX</li>
-                            <li>SD3.5</li>
+                            <li>Lumina</li>
+                            <li>Qwen Image</li>
+                            <li>HunyuanDiT</li>
                             <li>SD1.5</li>
                             <li>ANIME</li>
                             <li>NEWBIE</li>
@@ -149,15 +155,35 @@
             <!-- Contextual Topbar -->
             <header class="topbar">
                 <nav class="top-nav">
+                    <!-- DOM 槽位顺序必须与 UI_TABS / TOPBAR_TABS 一致：model…speed, frontier, advanced -->
                     <a href="#" class="top-nav-item active" data-i18n="topbar.model">Model</a>
-                    <a href="#" class="top-nav-item" data-i18n="topbar.tagger">Tagger</a>
-                    <a href="#" class="top-nav-item" data-i18n="topbar.advanced">Advanced</a>
-                    <a href="#" class="top-nav-item" data-i18n="topbar.dataset">Dataset</a>
+                    <a href="#" class="top-nav-item" data-i18n="topbar.tagger">Dataset</a>
+                    <a href="#" class="top-nav-item" data-i18n="topbar.advanced">Training</a>
+                    <a href="#" class="top-nav-item" data-i18n="topbar.dataset">Network</a>
                     <a href="#" class="top-nav-item" data-i18n="topbar.optimizer">Optimizer</a>
-                    <a href="#" class="top-nav-item" data-i18n="topbar.tensorboard">Tensorboard</a>
-                    <a href="#" class="top-nav-item" data-i18n="topbar.tools">Tools</a>
-                    <a href="#" class="top-nav-item" data-i18n="topbar.help">Help</a>
+                    <a href="#" class="top-nav-item" data-i18n="topbar.tensorboard">Preview</a>
+                    <a href="#" class="top-nav-item" data-i18n="topbar.tools">Acceleration</a>
+                    <a href="#" class="top-nav-item" data-i18n="topbar.frontier">Frontier</a>
+                    <a href="#" class="top-nav-item" data-i18n="topbar.help">Advanced</a>
                 </nav>
+                <div class="topbar-mode-toggle" id="topbar-mode-toggle">
+                    <button class="mode-btn active" data-mode="standard" title="标准模式：只显示常用参数页签，适合常规 LoRA 训练">标准</button>
+                    <button class="mode-btn" data-mode="advanced" title="高级模式：额外显示「先锋 / 高级」实验性参数页签">高级</button>
+                </div>
+                <div class="topbar-perf-toggle" id="topbar-perf-toggle">
+                    <button class="perf-btn active" data-perf="lulynx" title="Lulynx 优化：启用 Lulynx 定制的性能优化路径（推荐），自动应用加速与显存优化策略">
+                        <svg class="icon" style="width:14px;height:14px;"><use href="#icon-zap"></use></svg>
+                        <span>Lulynx优化</span>
+                    </button>
+                    <button class="perf-btn" data-perf="classic" title="经典兼容：使用上游 kohya/sd-scripts 的原版训练路径，兼容性最好，适合排查问题或对照实验">
+                        <svg class="icon" style="width:14px;height:14px;"><use href="#icon-tool"></use></svg>
+                        <span>经典兼容</span>
+                    </button>
+                </div>
+                <div class="topbar-optimizer-toggle" id="topbar-optimizer-toggle">
+                    <button class="optimizer-btn active" data-optimizer="turbocore" title="TurboCore：使用 CUDA 融合内核执行优化器步骤，减少显存占用并加速参数更新（需要支持的运行时）">TurboCore</button>
+                    <button class="optimizer-btn" data-optimizer="pytorch" title="PyTorch：使用 PyTorch 原生优化器实现，兼容性最好">PyTorch</button>
+                </div>
                 <div class="topbar-search" id="topbar-search">
                     <div class="topbar-search-input-wrap">
                         <svg class="icon" style="width:14px;height:14px;opacity:0.5;flex-shrink:0;"><use href="#icon-search"></use></svg>
@@ -165,6 +191,7 @@
                     </div>
                     <div class="topbar-search-dropdown" id="topbar-search-dropdown"></div>
                 </div>
+                <div class="topbar-boot-bubble" id="topbar-boot-bubble" hidden></div>
             </header>
 
             <!-- Configuration Form -->
@@ -275,7 +302,7 @@
             <div class="panel-preset-actions" id="panel-preset-actions"></div>
         </aside>
     </div>
-    <input type="file" id="config-file-input" accept=".toml,.json,application/json" hidden>
+    <input type="file" id="config-file-input" accept=".toml,.json,.yaml,.yml,application/json,application/x-yaml,text/yaml" hidden>
     <input type="file" id="native-picker-input" hidden>
     <div class="builtin-picker-modal" id="builtin-picker-modal">
         <div class="builtin-picker-dialog">

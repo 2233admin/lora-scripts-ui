@@ -2,8 +2,16 @@
   "key": "activation_compression_enabled",
   "title": "激活压缩",
   "category": "显存优化 / 激活",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora", "finetune"],
-  "layers": ["显存层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora",
+    "finetune"
+  ],
+  "layers": [
+    "显存层"
+  ],
   "standard": {
     "summary": "将 autograd 保存的激活张量在 GPU 上压缩为低精度，减少反向传播时的激活内存占用。",
     "effect": "activation_compression_dtype 选择压缩格式（fp16/bf16/fp8_e4m3）。activation_compression_min_tensor_mb 设置最小压缩阈值。",
@@ -17,5 +25,9 @@
     "tradeoffs": "FP8 压缩可能影响梯度质量。建议先用 FP16/BF16。",
     "codePath": "training_loop.py:activation_compression → save_for_backward hook → dtype cast → dequantize on backward"
   },
-  "relatedConfigs": ["activation_compression_dtype", "activation_compression_min_tensor_mb", "gradient_checkpointing"]
+  "relatedConfigs": [
+    "activation_compression_dtype",
+    "activation_compression_min_tensor_mb",
+    "gradient_checkpointing"
+  ]
 }

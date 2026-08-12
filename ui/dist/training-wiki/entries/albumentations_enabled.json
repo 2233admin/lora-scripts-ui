@@ -2,8 +2,16 @@
   "key": "albumentations_enabled",
   "title": "Albumentations 增强管线",
   "category": "数据集 / 增强",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora", "finetune"],
-  "layers": ["数据层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora",
+    "finetune"
+  ],
+  "layers": [
+    "数据层"
+  ],
   "standard": {
     "summary": "使用 Albumentations 库提供的高级图像增强管线。支持高斯模糊、弹性变换、网格畸变等复杂增强操作。",
     "effect": "比内置的 flip_aug/color_aug 更强大和灵活。albumentations_pipeline 用 JSON 定义增强操作序列。",
@@ -17,5 +25,10 @@
     "tradeoffs": "需要 albumentations 包已安装。某些变换（如弹性变换）计算开销较大。",
     "codePath": "dataset/image_preprocess.py:AlbumentationsPipeline → A.ReplayCompose(transforms)"
   },
-  "relatedConfigs": ["albumentations_pipeline", "albumentations_mask_replay", "flip_aug", "color_aug"]
+  "relatedConfigs": [
+    "albumentations_pipeline",
+    "albumentations_mask_replay",
+    "flip_aug",
+    "color_aug"
+  ]
 }

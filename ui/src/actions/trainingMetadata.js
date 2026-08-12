@@ -12,11 +12,17 @@
 import { $ } from '../utils/dom.js';
 import {
   collectTrainingMetrics as _collectTrainingMetricsFromLines,
-  formatDuration,
   generateTrainingSummary as _generateSummaryFromMetrics,
   generateSummaryFromTaskLog,
   renderSummaryCard,
 } from '../utils/trainingMetrics.js';
+import { getMultiBatchEvidenceFromTask } from '../utils/multiBatchEvidence.js';
+import { getTrainingRuntimeSummaryFromTask } from '../utils/trainingRuntimeSummary.js';
+import {
+  getCanonicalRunId,
+  loadTrainingQualityReport,
+  renderTrainingSummaryWithQuality,
+} from '../utils/trainingQualityReport.js';
 
 export function createTrainingMetadataActions({
   state,
@@ -37,7 +43,6 @@ export function createTrainingMetadataActions({
       output_name: cfg.output_name || '',
       model_train_type: typeId,
       created_at: new Date().toLocaleString('zh-CN', { hour12: false }),
-      created_at_ms: Date.now(),
       training_type_label: (TRAINING_TYPES.find((item) => item.id === typeId) || {}).label || '',
       resolution: cfg.resolution || '',
       network_dim: cfg.network_dim || cfg.lokr_dim || cfg.dim || '',
@@ -55,43 +60,12 @@ export function createTrainingMetadataActions({
   function applyTaskMetadata(task, metadata, options = {}) {
     if (!task || !metadata) return;
     const force = !!(options && options.force);
-    const keys = ['output_name', 'model_train_type', 'created_at', 'created_at_ms', 'training_type_label', 'resolution', 'network_dim', 'duration_ms', 'duration_str'];
+    const keys = ['output_name', 'model_train_type', 'created_at', 'training_type_label', 'resolution', 'network_dim'];
     for (const key of keys) {
       if (metadata[key] !== undefined && metadata[key] !== '' && (force || task[key] === undefined || task[key] === '')) {
         task[key] = metadata[key];
       }
     }
-  }
-
-  function _readTaskStartMs(task) {
-    const direct = Number(task && (task.created_at_ms || task.started_at_ms || task.start_time_ms));
-    if (Number.isFinite(direct) && direct > 0) return direct;
-    const raw = String((task && (task.created_at || task.started_at || task.start_time)) || '').trim();
-    if (!raw) return 0;
-    const parsed = Date.parse(raw.replace(/\//g, '-'));
-    return Number.isFinite(parsed) ? parsed : 0;
-  }
-
-  function ensureTaskDuration(task, options = {}) {
-    if (!task) return task;
-    const status = String(task.status || '').toUpperCase();
-    if (status === 'RUNNING' || status === 'CREATED') return task;
-    if (!options.force && Number(task.duration_ms || 0) > 0) return task;
-    const startMs = _readTaskStartMs(task);
-    const endMs = Number(task.finished_at_ms || task.completed_at_ms || task.ended_at_ms || Date.now());
-    if (!startMs || !Number.isFinite(endMs) || endMs <= startMs) return task;
-    const durationMs = endMs - startMs;
-    task.duration_ms = durationMs;
-    task.duration_str = formatDuration(durationMs);
-    if (!task.finished_at) task.finished_at = new Date(endMs).toLocaleString('zh-CN', { hour12: false });
-    if (task._summary && typeof task._summary === 'object') {
-      task._summary.elapsed = durationMs;
-      task._summary.elapsedStr = task.duration_str;
-      task._summary.totalDurationMs = durationMs;
-      task._summary.totalDurationStr = task.duration_str;
-    }
-    state._taskHistoryDirty = true;
-    return task;
   }
 
   function rememberTrainingTaskMetadata(taskId, metadata = null) {
@@ -112,6 +86,7 @@ export function createTrainingMetadataActions({
       startTime: null, lastStep: 0, totalSteps: 0,
       bTier: null, ghostReplay: null,
       memoryOptimization: null,
+      sdxlLoraLowVramProfile: null,
       precisionSwapProfile: null,
       nativeUnet: null,
       peakVramDiagnostics: null,
@@ -140,9 +115,63 @@ export function createTrainingMetadataActions({
   }
 
   function summaryRenderOptions() {
+    return summaryRenderOptionsForTask('');
+  }
+
+  function getTaskId(task) {
+    return String((task && (task.id || task.task_id)) || '');
+  }
+
+  function getBubbleAdvisorAbEvidenceForTask(taskId, explicitTask = null) {
+    var task = explicitTask || state.tasks.find(function(t) { return getTaskId(t) === taskId; }) || null;
+    var metadata = task && task.metadata && typeof task.metadata === 'object' ? task.metadata : {};
+    var cached = taskId && state.taskSummaries ? state.taskSummaries[taskId] : null;
+    cached = cached && typeof cached === 'object' ? cached : {};
+    var embedded = task && task._summary && typeof task._summary === 'object' ? task._summary : {};
+    var evidence = metadata.bubble_advisor_ab_evidence
+      || task?.bubble_advisor_ab_evidence
+      || cached.bubbleAdvisorAbEvidence
+      || cached.bubble_advisor_ab_evidence
+      || embedded.bubbleAdvisorAbEvidence
+      || embedded.bubble_advisor_ab_evidence
+      || null;
+    return evidence && typeof evidence === 'object' ? evidence : null;
+  }
+
+  function getBubbleClosedLoopStateForTask(taskId, explicitTask = null) {
+    var task = explicitTask || state.tasks.find(function(t) { return getTaskId(t) === taskId; }) || null;
+    var metadata = task && task.metadata && typeof task.metadata === 'object' ? task.metadata : {};
+    var cached = taskId && state.taskSummaries ? state.taskSummaries[taskId] : null;
+    cached = cached && typeof cached === 'object' ? cached : {};
+    var embedded = task && task._summary && typeof task._summary === 'object' ? task._summary : {};
+    var closedLoop = metadata.bubble_closed_loop_state
+      || task?.bubble_closed_loop_state
+      || cached.bubbleClosedLoopState
+      || cached.bubble_closed_loop_state
+      || embedded.bubbleClosedLoopState
+      || embedded.bubble_closed_loop_state
+      || null;
+    return closedLoop && typeof closedLoop === 'object' ? closedLoop : null;
+  }
+
+  function getMultiBatchEvidenceForTask(taskId, explicitTask = null) {
+    var task = explicitTask || state.tasks.find(function(t) { return getTaskId(t) === taskId; }) || null;
+    return getMultiBatchEvidenceFromTask(task, state.taskSummaries);
+  }
+
+  function getTrainingRuntimeSummaryForTask(taskId, explicitTask = null) {
+    var task = explicitTask || state.tasks.find(function(t) { return getTaskId(t) === taskId; }) || null;
+    return getTrainingRuntimeSummaryFromTask(task, state.taskSummaries);
+  }
+
+  function summaryRenderOptionsForTask(taskId) {
     return {
       pcieTransferBenchmark: state.pcieTransferBenchmark || null,
       showCompileRuntime: true,
+      bubbleAdvisorAbEvidence: getBubbleAdvisorAbEvidenceForTask(taskId),
+      bubbleClosedLoopState: getBubbleClosedLoopStateForTask(taskId),
+      multiBatchEvidence: getMultiBatchEvidenceForTask(taskId),
+      trainingRuntimeSummary: getTrainingRuntimeSummaryForTask(taskId),
     };
   }
 
@@ -164,9 +193,23 @@ export function createTrainingMetadataActions({
   async function buildAndSaveSummaryFromTaskLog(taskId) {
     const lines = await fetchTaskLogLines(taskId, 5000);
     if (lines.length=== 0) return null;
-    const task = state.tasks.find(function(t) { return t.id === taskId || t.task_id === taskId; });
-    ensureTaskDuration(task);
-    const summary = generateSummaryFromTaskLog(lines, task && Number(task.duration_ms || 0) > 0 ? Number(task.duration_ms) : 0);
+    const summary = generateSummaryFromTaskLog(lines);
+    const evidence = getBubbleAdvisorAbEvidenceForTask(taskId);
+    const closedLoop = getBubbleClosedLoopStateForTask(taskId);
+    const multiBatchEvidence = getMultiBatchEvidenceForTask(taskId);
+    const trainingRuntimeSummary = getTrainingRuntimeSummaryForTask(taskId);
+    if (evidence && summary && typeof summary === 'object') {
+      summary.bubbleAdvisorAbEvidence = evidence;
+    }
+    if (closedLoop && summary && typeof summary === 'object') {
+      summary.bubbleClosedLoopState = closedLoop;
+    }
+    if (multiBatchEvidence && summary && typeof summary === 'object') {
+      summary.multiBatchEvidence = multiBatchEvidence;
+    }
+    if (trainingRuntimeSummary && summary && typeof summary === 'object') {
+      summary.trainingRuntimeSummary = trainingRuntimeSummary;
+    }
     saveTaskSummary(taskId, summary);
 await saveLocalTaskHistory();
     return summary;
@@ -174,19 +217,26 @@ await saveLocalTaskHistory();
 
   /** Save task summary to session cache */
   function saveTaskSummary(taskId, summary) {
+    var task = state.tasks.find(function(t) { return getTaskId(t) === taskId; });
+    var evidence = getBubbleAdvisorAbEvidenceForTask(taskId, task);
+    var closedLoop = getBubbleClosedLoopStateForTask(taskId, task);
+    var multiBatchEvidence = getMultiBatchEvidenceForTask(taskId, task);
+    var trainingRuntimeSummary = getTrainingRuntimeSummaryForTask(taskId, task);
+    if (evidence && summary && typeof summary === 'object' && !summary.bubbleAdvisorAbEvidence && !summary.bubble_advisor_ab_evidence) {
+      summary = { ...summary, bubbleAdvisorAbEvidence: evidence };
+    }
+    if (closedLoop && summary && typeof summary === 'object' && !summary.bubbleClosedLoopState && !summary.bubble_closed_loop_state) {
+      summary = { ...summary, bubbleClosedLoopState: closedLoop };
+    }
+    if (multiBatchEvidence && summary && typeof summary === 'object' && !summary.multiBatchEvidence && !summary.multi_batch_evidence) {
+      summary = { ...summary, multiBatchEvidence };
+    }
+    if (trainingRuntimeSummary && summary && typeof summary === 'object' && !summary.trainingRuntimeSummary && !summary.training_runtime_summary) {
+      summary = { ...summary, trainingRuntimeSummary };
+    }
     state.taskSummaries[taskId] = summary;
     // 持久化：存到任务对象上，随 task_history.json 一起保存
-    var task = state.tasks.find(function(t) { return t.id === taskId; });
-    if (task) {
-      ensureTaskDuration(task);
-      if (Number(task.duration_ms || 0) > 0) {
-        summary.elapsed = Number(task.duration_ms);
-        summary.elapsedStr = task.duration_str || formatDuration(task.duration_ms);
-        summary.totalDurationMs = summary.elapsed;
-        summary.totalDurationStr = summary.elapsedStr;
-      }
-      task._summary = summary;
-    }
+    if (task) { task._summary = summary; }
     state._taskHistoryDirty = true;
     try {
       var cache = JSON.parse(sessionStorage.getItem('sd-rescripts:task-summaries') || '{}');
@@ -215,52 +265,62 @@ await saveLocalTaskHistory();
     } catch (e) { /* ignore */ }
   }
 
-  /** Click handler: show/togglesummary for a historical task */
+  /** First expansion loads both the legacy Loss summary and canonical P6 report. */
   async function showTaskSummary(taskId) {
     var panel = document.getElementById('task-summary-' + taskId);
     if (!panel) return;
-    var task = state.tasks.find(function(t) { return t.id === taskId; });
- if (task && !['FINISHED', 'COMPLETED'].includes(String(task.status || '').toUpperCase())) {
-      panel.innerHTML = '<span style="color:var(--text-dim);font-size:0.82rem;">失败或终止的任务不生成训练总结，请直接查看上方控制台日志。</span>';
+
+    // A fully loaded panel only toggles; no repeated report request on re-open.
+    if (panel.dataset.loaded === 'true' && panel.dataset.qualityLoaded === 'true') {
       panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
       return;
     }
-
-    // Toggle: if already showing, collapse
-    if(panel.dataset.loaded === 'true') {
-      if (panel.style.display=== 'none') {
-    panel.style.display = 'block';
-      } else {
-        panel.style.display = 'none';
-      }
+    if (panel.style.display !== 'none') {
+      panel.style.display = 'none';
       return;
     }
 
-  // Check cache first
-    if (state.taskSummaries[taskId] && state.taskSummaries[taskId]._v >= 2) {
-      panel.innerHTML = renderSummaryCard(state.taskSummaries[taskId], summaryRenderOptions());
+    var task = state.tasks.find(function(t) { return getTaskId(t) === taskId; }) || null;
+    var terminalStatuses = ['FINISHED', 'COMPLETED', 'FAILED', 'TERMINATED', 'STOPPED', 'CANCELLED', 'CANCELED'];
+    if (task && !terminalStatuses.includes(String(task.status || '').toUpperCase())) {
+      panel.innerHTML = '<span style="color:var(--text-dim);font-size:0.82rem;">任务尚未结束，请在实时监控页查看当前质量报告。</span>';
       panel.style.display = 'block';
-      panel.dataset.loaded = 'true';
       return;
     }
 
-    // Fetch log and generate on-the-fly
-    panel.innerHTML = '<span style="color:var(--text-dim);font-size:0.82rem;">\u2693 \u6b63\u5728\u5206\u6790\u8bad\u7ec3\u65e5\u5fd7...</span>';
+    panel.innerHTML = '<span style="color:var(--text-dim);font-size:0.82rem;">⚓ 正在加载训练质量报告与旧版 Loss 摘要...</span>';
     panel.style.display = 'block';
-    try {
- var summary = await buildAndSaveSummaryFromTaskLog(taskId);
-      if (!summary) {
-        panel.innerHTML = '<span style="color:var(--text-dim);font-size:0.82rem;">\u65e0\u8bad\u7ec3\u8f93\u51fa\u6570\u636e\uff0c\u65e0\u6cd5\u8bc4\u5206\u3002</span>';
-        panel.dataset.loaded = 'true';
-        return;
-      }
-      panel.innerHTML = renderSummaryCard(summary, summaryRenderOptions());
-      panel.dataset.loaded = 'true';
-  } catch (e) {
-      panel.innerHTML= '<span style="color:#ef4444;font-size:0.82rem;">\u65e5\u5fd7\u83b7\u53d6\u5931\u8d25</span>';
-    }
-  }
 
+    const runId = getCanonicalRunId(task);
+    const cachedSummary = state.taskSummaries[taskId] && state.taskSummaries[taskId]._v >= 2
+      ? state.taskSummaries[taskId]
+      : null;
+    const legacyPromise = cachedSummary
+      ? Promise.resolve(cachedSummary)
+      : buildAndSaveSummaryFromTaskLog(taskId);
+    const qualityPromise = runId
+      ? loadTrainingQualityReport(runId)
+      : Promise.resolve(null);
+
+    const [legacyResult, qualityResult] = await Promise.allSettled([legacyPromise, qualityPromise]);
+    const summary = legacyResult.status === 'fulfilled' ? legacyResult.value : null;
+    const legacyHtml = summary
+      ? renderSummaryCard(summary, summaryRenderOptionsForTask(taskId))
+      : '<span style="color:var(--text-muted);font-size:0.72rem;">无训练输出数据，旧版 Loss 摘要不可用。</span>';
+    const report = qualityResult.status === 'fulfilled' ? qualityResult.value : null;
+    const qualityError = qualityResult.status === 'rejected'
+      ? (qualityResult.reason?.message || '报告加载失败')
+      : '';
+
+    panel.innerHTML = renderTrainingSummaryWithQuality({
+      legacyHtml,
+      report,
+      runId,
+      error: qualityError,
+    });
+    panel.dataset.loaded = 'true';
+    panel.dataset.qualityLoaded = 'true';
+  }
   return {
     collectTrainingMetrics,
    buildTaskMetadataFromConfig,

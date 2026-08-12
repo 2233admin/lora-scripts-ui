@@ -2,8 +2,17 @@
   "key": "module_offload_enabled",
   "title": "模块级 CPU Offload",
   "category": "显存 / Offload",
-  "appliesTo": ["sdxl-lora", "anima-lora", "newbie-lora", "finetune", "flux-lora"],
-  "layers": ["内存层", "显存管理层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "anima-lora",
+    "newbie-lora",
+    "finetune",
+    "flux-lora"
+  ],
+  "layers": [
+    "内存层",
+    "显存管理层"
+  ],
   "standard": {
     "summary": "将冻结的 Linear/Conv 模块整体驻留在 CPU，只在 forward 时按需搬到 GPU。",
     "effect": "可节省大量冻结权重显存，但增加 CPU↔GPU 搬运时间。profile 控制激进程度。",
@@ -16,5 +25,10 @@
     "expectedImpact": "冻结权重显存趋近于零；但训练速度随 offload 比例线性下降。",
     "tradeoffs": "prefetch_enabled 异步预取下一个 module 以重叠搬运和计算；include/exclude_patterns 精细控制哪些层参与 offload。"
   },
-  "relatedConfigs": ["module_offload_ratio", "module_offload_profile", "swap_granularity", "enable_sequential_cpu_offload"]
+  "relatedConfigs": [
+    "module_offload_ratio",
+    "module_offload_profile",
+    "swap_granularity",
+    "enable_sequential_cpu_offload"
+  ]
 }

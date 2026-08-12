@@ -2,8 +2,16 @@
   "key": "stochastic_rounding",
   "title": "随机舍入",
   "category": "精度 / 优化",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora", "finetune"],
-  "layers": ["优化器层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora",
+    "finetune"
+  ],
+  "layers": [
+    "优化器层"
+  ],
   "standard": {
     "summary": "在 optimizer step 时使用随机舍入代替确定性舍入，减少 BF16/FP16 参数更新的系统性偏差。",
     "effect": "标准舍入（round-to-nearest）在低精度下会系统性地偏向某个方向。随机舍入以概率方式保持无偏性，长期累积更精确。",
@@ -17,5 +25,9 @@
     "tradeoffs": "增加约 5% 的 step 时间（随机数生成开销）。",
     "codePath": "training_loop.py:optimizer.step() → stochastic_round(param_update)"
   },
-  "relatedConfigs": ["mixed_precision", "full_bf16", "stochastic_grad_accumulation"]
+  "relatedConfigs": [
+    "mixed_precision",
+    "full_bf16",
+    "stochastic_grad_accumulation"
+  ]
 }

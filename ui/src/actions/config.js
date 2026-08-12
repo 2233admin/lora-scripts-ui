@@ -3,6 +3,7 @@
 //   syncConfigState / refreshFieldHighlights / getPresetLabel /
 //   updateConfigValue / resetFieldValue / undoFieldValue /
 //   resetAllParams / applyPreset
+import { OPTIMIZER_ARG_TEMPLATES } from '../features/optimizerParams.js';
 //
 // 依赖（工厂注入）：state, getFieldDefinition, normalizeDraftValue,
 //   createDefaultConfig, CONDITIONAL_KEYS,DRAFT_STORAGE_KEY,
@@ -91,7 +92,19 @@ updateJSONPreview,
     return `预设 ${index + 1}`;
   }
 
-  function updateConfigValue(key, rawValue) {
+  function explicitFieldSet() {
+    const typeId = state.activeTrainingType || 'sdxl-lora';
+    state.trainingIntentExplicitFields ||= {};
+    state.trainingIntentExplicitFields[typeId] ||= new Set();
+    return state.trainingIntentExplicitFields[typeId];
+  }
+
+  function markExplicitField(key) {
+    if (key) explicitFieldSet().add(key);
+  }
+
+  async function updateConfigValue(key, rawValue, options = {}) {
+    if (options.explicit !== false) markExplicitField(key);
     const field = getFieldDefinition(key);
     const normalizedValue = normalizeDraftValue(field, rawValue);
     const previousValue = state.config[key];
@@ -100,6 +113,28 @@ updateJSONPreview,
     }
     state.config[key] = normalizedValue;
     enforceLycorisDoraSafety();
+
+    if (key === 'optimizer_type') {
+      const prevKey = String(previousValue ?? '').trim().toLowerCase();
+      const nextKey = String(normalizedValue ?? '').trim().toLowerCase();
+      if (prevKey !== nextKey) {
+        const prevTemplate = OPTIMIZER_ARG_TEMPLATES[prevKey] || '';
+        const nextTemplate = OPTIMIZER_ARG_TEMPLATES[nextKey] || '';
+        const current = String(state.config.optimizer_args_custom ?? '').trim();
+        if (!current || current === prevTemplate) {
+          state.config.optimizer_args_custom = nextTemplate;
+        }
+      }
+    }
+
+    // Model architecture detection for model path fields
+    if (key === 'pretrained_model_name_or_path' && normalizedValue) {
+      // Import validation function dynamically
+      if (window.validateModelSelection) {
+        await window.validateModelSelection(normalizedValue, key);
+      }
+    }
+
     if (CONDITIONAL_KEYS.has(key) && state.activeModule === 'config') {
       saveDraft();
       renderView('config');
@@ -110,6 +145,7 @@ updateJSONPreview,
 
   function resetAllParams() {
     state.config = createDefaultConfig(state.activeTrainingType);
+    state.trainingIntentExplicitFields[state.activeTrainingType] = new Set();
     state.hasLocalDraft = false;
     localStorage.removeItem(DRAFT_STORAGE_KEY);
     resetTransientState();
@@ -141,16 +177,28 @@ updateJSONPreview,
     if (state.activeModule === 'config') renderView('config');
   }
 
-  function applyPreset(index) {
+  function _doApplyPreset(index) {
     const preset = state.presets[index];
-    if (!preset) {
-      return;
-    }
+    if (!preset) return;
     mergeConfigPatch(preset);
+    for (const key of Object.keys(preset)) {
+      if (getFieldDefinition(key)) markExplicitField(key);
+    }
     state.hasLocalDraft = true;
     resetTransientState();
     saveDraft();
     renderView('config');
+  }
+
+  function applyPreset(index) {
+    const preset = state.presets[index];
+    if (!preset) return;
+    // Feature 8：若 presetDiffTool 已加载，先弹 diff 确认弹窗
+    if (window.openPresetDiff) {
+      window.openPresetDiff(index);
+      return;
+    }
+    _doApplyPreset(index);
   }
 
   return {

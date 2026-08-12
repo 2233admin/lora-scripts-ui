@@ -2,8 +2,18 @@
   "key": "tensor_parallel_degree",
   "title": "Tensor/Sequence Parallel (张量/序列并行)",
   "category": "性能 / 分布式",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora", "finetune", "flux-lora"],
-  "layers": ["性能层", "模型层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora",
+    "finetune",
+    "flux-lora"
+  ],
+  "layers": [
+    "性能层",
+    "模型层"
+  ],
   "standard": {
     "summary": "将单个 Transformer 层的计算切分到多个 GPU 上（Tensor Parallelism），或将序列维度切分到多个 GPU 上（Sequence Parallelism），支持超大模型单步训练。",
     "effect": "tensor_parallel_degree 控制 TP 并行度（默认 1，即不切分）。sequence_parallel=True 启用序列并行。parallel_backend 选择通信后端（nccl/cuda_direct）。需要 torchrun 启动。",
@@ -17,5 +27,10 @@
     "tradeoffs": "TP 和 DDP 可以组合使用。SP 对 attention 有额外通信开销。",
     "codePath": "core/parallel/ → tensor parallel + sequence parallel layer wrapping"
   },
-  "relatedConfigs": ["sequence_parallel", "parallel_backend", "multi_gpu", "num_processes"]
+  "relatedConfigs": [
+    "sequence_parallel",
+    "parallel_backend",
+    "multi_gpu",
+    "num_processes"
+  ]
 }

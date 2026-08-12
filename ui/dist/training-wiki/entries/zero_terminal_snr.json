@@ -2,8 +2,14 @@
   "key": "zero_terminal_snr",
   "title": "零终端 SNR",
   "category": "正则 / 噪声调度",
-  "appliesTo": ["sdxl-lora", "sd-lora", "finetune"],
-  "layers": ["噪声调度层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "finetune"
+  ],
+  "layers": [
+    "噪声调度层"
+  ],
   "standard": {
     "summary": "修改噪声调度使得最后一个 timestep 的 SNR 恰好为 0（完全噪声），解决标准调度中 SNR 不归零导致的训练/推理不一致问题。",
     "effect": "让模型在最后一步真正学到从纯噪声去噪，改善最大 timestep 的生成质量。对暗部和纯色区域有帮助。",
@@ -17,5 +23,8 @@
     "tradeoffs": "需要重新训练——不能在已有 checkpoint 上直接开启。",
     "codePath": "trainer.py:zero_terminal_snr → adjust betas → alphas_cumprod[-1] = 0"
   },
-  "relatedConfigs": ["min_snr_gamma", "noise_offset"]
+  "relatedConfigs": [
+    "min_snr_gamma",
+    "noise_offset"
+  ]
 }

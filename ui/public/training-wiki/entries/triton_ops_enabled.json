@@ -2,8 +2,15 @@
   "key": "triton_ops_enabled",
   "title": "Triton Ops (融合内核)",
   "category": "性能 / 内核",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora"],
-  "layers": ["性能层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora"
+  ],
+  "layers": [
+    "性能层"
+  ],
   "standard": {
     "summary": "使用 Triton 编写的融合 CUDA 内核替代 PyTorch 原生操作，覆盖 LoRA 计算、QKV 投影和 AdaLN 调制，减少 kernel launch 开销。",
     "effect": "triton_ops_inject_lora 替换 LoRA 的 down/up 矩阵乘法为融合 kernel。triton_ops_inject_qkv 融合 Q/K/V 投影。triton_ops_inject_adaln 融合 AdaLN 调制。triton_ops_fp32_backward 在 backward 中保持 FP32 精度。",
@@ -17,5 +24,10 @@
     "tradeoffs": "需要 CUDA + Triton 环境。可能与 torch.compile 冲突。",
     "codePath": "core/triton_ops/ → fused LoRA/QKV/AdaLN Triton kernels"
   },
-  "relatedConfigs": ["triton_ops_inject_lora", "triton_ops_inject_qkv", "triton_ops_inject_adaln", "triton_ops_fp32_backward"]
+  "relatedConfigs": [
+    "triton_ops_inject_lora",
+    "triton_ops_inject_qkv",
+    "triton_ops_inject_adaln",
+    "triton_ops_fp32_backward"
+  ]
 }

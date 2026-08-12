@@ -2,8 +2,17 @@
   "key": "sample_every",
   "title": "训练预览采样",
   "category": "训练 / 预览",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora", "finetune", "flux-lora"],
-  "layers": ["训练控制层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora",
+    "finetune",
+    "flux-lora"
+  ],
+  "layers": [
+    "训练控制层"
+  ],
   "standard": {
     "summary": "训练过程中定期生成预览图像，让你实时观察训练效果。可以设置每 N 步或每 N 个 epoch 生成一次。",
     "effect": "sample_every=100 表示每 100 步生成一次预览。sample_prompts 指定用于生成的 prompt 列表。预览不影响训练过程。",
@@ -17,5 +26,12 @@
     "tradeoffs": "preview_device='gpu' 在 GPU 上生成最快但占用训练显存；'cpu' 慢但不占 GPU；'off' 禁用。micro_vae_preview 使用小型 VAE 加速解码。",
     "codePath": "training_loop.py:training_step() → if step % sample_every == 0: generate previews"
   },
-  "relatedConfigs": ["sample_prompts", "sample_sampler", "sample_steps", "sample_cfg", "preview_device", "sample_every_n_epochs"]
+  "relatedConfigs": [
+    "sample_prompts",
+    "sample_sampler",
+    "sample_steps",
+    "sample_cfg",
+    "preview_device",
+    "sample_every_n_epochs"
+  ]
 }

@@ -2,8 +2,17 @@
   "key": "resolution",
   "title": "训练分辨率",
   "category": "数据集 / 分辨率",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora", "finetune", "flux-lora"],
-  "layers": ["数据层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora",
+    "finetune",
+    "flux-lora"
+  ],
+  "layers": [
+    "数据层"
+  ],
   "standard": {
     "summary": "训练图片的目标分辨率。分辨率越高模型学到的细节越多，但显存占用和训练时间也显著增加。是除训练步数外最影响训练成本和效果的参数。",
     "effect": "SDXL 推荐 1024（匹配底模训练分辨率）；SD1.5 推荐 512。支持 '1024,768' 格式指定非正方形分辨率。分辨率翻倍，latent 面积翻 4 倍，显存约翻 4 倍，训练时间约翻 4 倍（UNet forward 与空间面积成正比）。",
@@ -23,5 +32,14 @@
     "tradeoffs": "staged_resolution_steps 和 staged_resolution_values 控制阶段分辨率训练。例如 '500,1500' + '512,1024' 表示前 500 步 512px，后 1500 步 1024px。staged_resolution_ratio_* 系列参数按面积比例控制。这比固定分辨率节省约 20-30% 训练时间且质量接近。",
     "codePath": "dataset_loader.py:resize/crop → VAE encode → latent (C, H/8, W/8) → UNet forward"
   },
-  "relatedConfigs": ["enable_bucket", "min_bucket_reso", "max_bucket_reso", "enable_mixed_resolution_training", "staged_resolution_steps", "staged_resolution_values", "train_batch_size", "attention_backend"]
+  "relatedConfigs": [
+    "enable_bucket",
+    "min_bucket_reso",
+    "max_bucket_reso",
+    "enable_mixed_resolution_training",
+    "staged_resolution_steps",
+    "staged_resolution_values",
+    "train_batch_size",
+    "attention_backend"
+  ]
 }

@@ -1,0 +1,26 @@
+{
+  "key": "bubble_controller_mode",
+  "title": "Bubble 模式",
+  "category": "训练参数",
+  "appliesTo": [],
+  "layers": [],
+  "standard": {
+    "summary": "report_only=只报告（详见 ?）",
+    "effect": "",
+    "whenToUse": "不确定时先保持默认，小步数短测后再调。",
+    "avoidWhen": "与预检冲突或与其它互斥选项同时开启时。",
+    "optionDescriptions": {
+      "report_only": "空泡只报告，不改行为。",
+      "advisor_patch": "给建议，不自动改。",
+      "auto_apply": "建议直接套上，判错了行为就跟着变。"
+    }
+  },
+  "advanced": {
+    "principle": "report_only=只报告；advisor_patch=建议补丁；auto_apply=自动应用。",
+    "intervention": "",
+    "expectedImpact": "",
+    "tradeoffs": "",
+    "codePath": ""
+  },
+  "relatedConfigs": []
+}

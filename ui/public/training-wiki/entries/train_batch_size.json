@@ -2,8 +2,18 @@
   "key": "train_batch_size",
   "title": "批次大小",
   "category": "训练 / 批次",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora", "finetune", "flux-lora"],
-  "layers": ["数据层", "优化器层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora",
+    "finetune",
+    "flux-lora"
+  ],
+  "layers": [
+    "数据层",
+    "优化器层"
+  ],
   "standard": {
     "summary": "每次前向/反向传播同时处理多少张图片。batch_size 是显存、梯度质量和训练速度三者之间的核心调节旋钮。",
     "effect": "batch=1 时显存最低但梯度噪声最大（每步只看一张图）。batch=4 时梯度更平滑但显存约为 batch=1 的 2.5-3 倍（不是线性关系，因为 activation 与 batch 线性而权重和 optimizer state 不变）。实际显存占用 ≈ 权重 + optimizer_state + activation_per_sample × batch_size。",
@@ -24,5 +34,13 @@
     "tradeoffs": "dataloader_num_workers 控制数据加载并行度。Windows 下默认 0（主进程加载），Linux 下推荐 4。pin_memory=True 让 DataLoader 使用 CUDA pinned memory，加速 CPU→GPU tensor 传输。prefetch_factor 控制每个 worker 预加载多少个 batch。cached_dataloader_auto_policy 在使用 latent cache 时自动调优这些参数。",
     "codePath": "training_loop.py:_build_dataloader() → DataLoader(batch_size=..., num_workers=..., pin_memory=...) → training_step()"
   },
-  "relatedConfigs": ["gradient_accumulation_steps", "gradient_accumulation_mode", "resolution", "enable_bucket", "max_grad_norm", "dataloader_num_workers", "pin_memory"]
+  "relatedConfigs": [
+    "gradient_accumulation_steps",
+    "gradient_accumulation_mode",
+    "resolution",
+    "enable_bucket",
+    "max_grad_norm",
+    "dataloader_num_workers",
+    "pin_memory"
+  ]
 }

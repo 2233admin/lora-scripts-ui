@@ -2,8 +2,13 @@
   "key": "guidance_scale",
   "title": "Guidance Scale (引导强度)",
   "category": "DiT / Flow",
-  "appliesTo": ["flux-lora", "finetune"],
-  "layers": ["训练控制层"],
+  "appliesTo": [
+    "flux-lora",
+    "finetune"
+  ],
+  "layers": [
+    "训练控制层"
+  ],
   "standard": {
     "summary": "FLUX/SD3 等 Flow Matching 模型的蒸馏引导强度。控制训练时条件信号（文本）对预测的影响力。",
     "effect": "guidance_scale=1.0 是标准训练。>1 增强文本条件的影响（类似推理时的 CFG），让模型更紧密跟随 prompt。",
@@ -17,5 +22,9 @@
     "tradeoffs": "与 discrete_flow_shift 交互——两者共同决定 flow matching 的训练行为。",
     "codePath": "training_loop.py:pred = uncond + guidance_scale * (cond - uncond)"
   },
-  "relatedConfigs": ["discrete_flow_shift", "flow_model", "model_prediction_type"]
+  "relatedConfigs": [
+    "discrete_flow_shift",
+    "flow_model",
+    "model_prediction_type"
+  ]
 }

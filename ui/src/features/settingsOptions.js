@@ -5,8 +5,8 @@
 
 export const BASE_OPTIMIZERS = [
   'AdamW',
+  'SingularityAwareAdamW',
   'AdamW8bit',
-  'KahanAdamW8bit',
   'PagedAdamW8bit',
   'PagedAdamW',
   'PagedAdamW32bit',
@@ -30,13 +30,11 @@ export const BASE_OPTIMIZERS = [
   'AdaFactor',
   'Prodigy',
   'prodigyplus.ProdigyPlusScheduleFree',
-  'AnimaFactoredAdamW',
-  'Muon',
   'pytorch_optimizer.CAME',
   'pytorch_optimizer.StableAdamW',
   'pytorch_optimizer.SCION',
-  'bitsandbytes.optim.AdEMAMix8bit',
-  'bitsandbytes.optim.PagedAdEMAMix8bit',
+  'KL-Shampoo',
+  'Gluon',
 ];
 
 export const CURATED_PYTORCH_OPTIMIZER_NAMES = [
@@ -45,7 +43,46 @@ export const CURATED_PYTORCH_OPTIMIZER_NAMES = [
   'SCION',
 ];
 
-export const PYTORCH_OPTIMIZER_NAMES = [
+// 已并入主列表的已验证 frontier 候选（UI 仍可保留元数据；双开关已隐藏）。
+export const FRONTIER_OPTIMIZER_CANDIDATE_OPTIONS = [
+  { value: 'ADOPT', label: 'ADOPT' },
+  { value: 'KahanAdamW', label: 'KahanAdamW' },
+  { value: 'Muon', label: 'Muon' },
+];
+
+// 仍 hold 的未验证/缺模块实验优化器（不进主列表）。
+const FRONTIER_RELEASE_HOLD_OPTIMIZER_BASE_NAMES = new Set([
+  'adamw8bitkahan',
+  'kahanadamw8bit',
+  'adamuon',
+  'aurora',
+  'auroraopt',
+  'auroraoptimizer',
+  'distributedmuon',
+  'mars',
+  'riemann',
+  'riemannion',
+  'riemannlora',
+  'riemannionlora',
+  'rose',
+  'roseopt',
+  'roseoptimizer',
+  'soap',
+]);
+
+// 从 hold 中放出并直接并入 optimizer_type 的已验证子集。
+// KahanAdamW8bit 暂不并入（Python 模块缺失）。
+export const VERIFIED_FRONTIER_OPTIMIZERS = [
+  'ADOPT',
+  'KahanAdamW',
+  'Muon',
+];
+
+function isFrontierReleaseHoldOptimizer(name) {
+  return FRONTIER_RELEASE_HOLD_OPTIMIZER_BASE_NAMES.has(optimizerBaseName(name));
+}
+
+const RAW_PYTORCH_OPTIMIZER_NAMES = [
   'LBFGS',
   'SGD',
   'Adam',
@@ -53,7 +90,6 @@ export const PYTORCH_OPTIMIZER_NAMES = [
   'NAdam',
   'RMSprop',
   'A2Grad',
-  'ADOPT',
   'APOLLO',
   'ASGD',
   'AccSGD',
@@ -68,7 +104,6 @@ export const PYTORCH_OPTIMIZER_NAMES = [
   'AdaLOMO',
   'AdaMax',
   'AdaMod',
-  'AdaMuon',
   'AdaNorm',
   'AdaPNM',
   'AdaShift',
@@ -95,7 +130,6 @@ export const PYTORCH_OPTIMIZER_NAMES = [
   'BSAM',
   'CAME',
   'Conda',
-  'Compass',
   'DAdaptAdaGrad',
   'DAdaptAdam',
   'DAdaptAdan',
@@ -103,7 +137,7 @@ export const PYTORCH_OPTIMIZER_NAMES = [
   'DAdaptSGD',
   'DeMo',
   'DiffGrad',
-  'DistributedMuon',
+  'DualAdam',
   'EXAdam',
   'EmoFact',
   'EmoLynx',
@@ -112,6 +146,7 @@ export const PYTORCH_OPTIMIZER_NAMES = [
   'FOCUS',
   'FTRL',
   'Fira',
+  'FlashAdamW',
   'Fromage',
   'GaLore',
   'Grams',
@@ -121,13 +156,12 @@ export const PYTORCH_OPTIMIZER_NAMES = [
   'Kron',
   'LARS',
   'LOMO',
+  'LoRARite',
   'LaProp',
   'Lamb',
   'Lion',
   'MADGRAD',
-  'MARS',
   'MSVAG',
-  'Muon',
   'Nero',
   'NovoGrad',
   'PAdam',
@@ -147,7 +181,6 @@ export const PYTORCH_OPTIMIZER_NAMES = [
   'SGDSaI',
   'SGDW',
   'SM3',
-  'SOAP',
   'SPAM',
   'SPlus',
   'SRMM',
@@ -168,6 +201,9 @@ export const PYTORCH_OPTIMIZER_NAMES = [
   'Yogi',
   'SpectralSphere',
 ];
+
+export const PYTORCH_OPTIMIZER_NAMES = RAW_PYTORCH_OPTIMIZER_NAMES
+  .filter((name) => !isFrontierReleaseHoldOptimizer(name));
 
 function optimizerBaseName(name) {
   const value = String(name || '').trim();
@@ -199,11 +235,44 @@ function invertKeepFirst(mapping) {
 const BASE_OPTIMIZER_BASE_NAMES = new Set(BASE_OPTIMIZERS.map(optimizerBaseName));
 
 export const ALL_OPTIMIZERS = dedupeKeepOrder([
-  ...BASE_OPTIMIZERS,
+  ...BASE_OPTIMIZERS.filter((name) => !isFrontierReleaseHoldOptimizer(name)),
+  ...VERIFIED_FRONTIER_OPTIMIZERS,
   ...CURATED_PYTORCH_OPTIMIZER_NAMES
     .filter((name) => !BASE_OPTIMIZER_BASE_NAMES.has(name.toLowerCase()))
     .map((name) => `pytorch_optimizer.${name}`),
+  ...PYTORCH_OPTIMIZER_NAMES
+    .filter((name) => !BASE_OPTIMIZER_BASE_NAMES.has(name.toLowerCase()))
+    .map((name) => `pytorch_optimizer.${name}`),
 ]);
+
+const TARGET_LORA_OPTIMIZERS_BASE = dedupeKeepOrder([
+  ...ALL_OPTIMIZERS,
+  'Automagic++',
+  'AutoProdigy',
+  'KahanAdamW',
+  'KahanAdamW8bit',
+  'bitsandbytes.optim.AdEMAMix8bit',
+  'bitsandbytes.optim.PagedAdEMAMix8bit',
+  'PytorchOptimizer',
+  'GenericOptimizer',
+  'AnimaFactoredAdamW',
+]).filter((name) => !isFrontierReleaseHoldOptimizer(name));
+
+// Export as function to support filtering based on training mode
+export function getOptimizersForTrainingMode(modelTrainType) {
+  const trainType = String(modelTrainType || '').trim().toLowerCase();
+
+  // AnimaFactoredAdamW is only for full model fine-tuning (anima-finetune)
+  // For LoRA training, it's counterproductive (slower with no memory benefit)
+  if (trainType !== 'anima-finetune') {
+    return TARGET_LORA_OPTIMIZERS_BASE.filter((name) => name !== 'AnimaFactoredAdamW');
+  }
+
+  return TARGET_LORA_OPTIMIZERS_BASE;
+}
+
+// Legacy export for backward compatibility (returns all optimizers)
+export const TARGET_LORA_OPTIMIZERS = TARGET_LORA_OPTIMIZERS_BASE;
 
 export const BUILTIN_SCHEDULERS = [
   'linear',
@@ -224,21 +293,21 @@ export const BUILTIN_SCHEDULERS = [
 ];
 
 export const SCHEDULER_LABELS = Object.freeze({
-  linear: '线性衰减（linear）',
-  cosine: '余弦退火（cosine）',
-  cosine_with_restarts: '余弦重启（cosine_with_restarts）',
-  polynomial: '多项式衰减（polynomial）',
-  constant: '恒定学习率（constant）',
-  constant_with_warmup: '预热后恒定（constant_with_warmup）',
-  adafactor: 'Adafactor 内置调度（adafactor）',
-  inverse_sqrt: '反平方根衰减（inverse_sqrt）',
-  reduce_lr_on_plateau: '平台期降学习率（reduce_lr_on_plateau）',
-  cosine_with_min_lr: '带最小值余弦（cosine_with_min_lr）',
-  cosine_warmup_with_min_lr: '预热 + 最小值余弦（cosine_warmup_with_min_lr）',
-  loss_gated_cosine: 'Loss 门控余弦（loss_gated_cosine）',
-  loss_weighted_annealed_cosine: 'Loss 加权退火余弦（loss_weighted_annealed_cosine）',
-  warmup_stable_decay: '预热-稳定-衰减（warmup_stable_decay）',
-  piecewise_constant: '分段恒定（piecewise_constant）',
+  linear: '线性衰减',
+  cosine: '余弦退火',
+  cosine_with_restarts: '余弦重启',
+  polynomial: '多项式衰减',
+  constant: '恒定学习率',
+  constant_with_warmup: '预热后恒定',
+  adafactor: 'Adafactor 内置调度',
+  inverse_sqrt: '反平方根衰减',
+  reduce_lr_on_plateau: '平台期降学习率',
+  cosine_with_min_lr: '带最小值余弦',
+  cosine_warmup_with_min_lr: '预热 + 最小值余弦',
+  loss_gated_cosine: 'Loss 门控余弦',
+  loss_weighted_annealed_cosine: 'Loss 加权退火余弦',
+  warmup_stable_decay: '预热-稳定-衰减',
+  piecewise_constant: '分段恒定',
 });
 
 export function schedulerOption(value) {

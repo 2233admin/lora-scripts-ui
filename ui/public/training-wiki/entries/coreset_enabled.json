@@ -2,8 +2,16 @@
   "key": "coreset_enabled",
   "title": "Coreset 采样 (课程学习)",
   "category": "数据集 / 采样",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora"],
-  "layers": ["数据层", "采样层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora"
+  ],
+  "layers": [
+    "数据层",
+    "采样层"
+  ],
   "standard": {
     "summary": "Coreset 根据每个样本的历史 loss 将其分类为「简单/困难/有毒」，然后按权重采样。简单样本正常采样，困难样本提升权重，有毒样本降低或排除。",
     "effect": "减少离群样本对训练的干扰，提升整体收敛质量。coreset_toxic_weight=0 可以完全排除有毒样本。",
@@ -17,5 +25,10 @@
     "tradeoffs": "coreset_report_enabled 生成 top-k 困难/有毒样本报告，帮助人工审核数据质量。",
     "codePath": "core/training_components/coreset.py:CoresetManager → per-sample loss tracking → weighted sampling"
   },
-  "relatedConfigs": ["coreset_easy_weight", "coreset_hard_weight", "coreset_toxic_weight", "coreset_classify_after"]
+  "relatedConfigs": [
+    "coreset_easy_weight",
+    "coreset_hard_weight",
+    "coreset_toxic_weight",
+    "coreset_classify_after"
+  ]
 }

@@ -2,8 +2,17 @@
   "key": "noise_offset",
   "title": "噪声偏移",
   "category": "正则 / 噪声",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora", "finetune"],
-  "layers": ["数据层", "正则层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora",
+    "finetune"
+  ],
+  "layers": [
+    "数据层",
+    "正则层"
+  ],
   "standard": {
     "summary": "在标准高斯扩散噪声上叠加一个常数偏移量，让模型学会处理比训练数据更亮或更暗的图像。是改善生成图像明暗范围最常用的正则化手段之一。",
     "effect": "典型值 0.0358（论文推荐值）到 0.1。开启后模型对纯白/纯黑/高对比度场景的生成能力显著提升。adaptive_noise_scale 会根据 batch 内每张图片的平均亮度动态调整偏移强度——亮图加正偏移、暗图加负偏移。",
@@ -22,5 +31,13 @@
     "tradeoffs": "noise_offset_random_strength=True 时，每步在 [0, noise_offset] 之间随机采样偏移强度，增加训练多样性但降低可复现性。spectral_noise_blend 在频率域混合低频噪声（通过高斯模糊），与 noise_offset 互补——noise_offset 影响全局亮度，spectral 影响低频结构。",
     "codePath": "training_loop.py:_add_noise() → noise += noise_offset; adaptive: noise += scale * (brightness - 0.5)"
   },
-  "relatedConfigs": ["adaptive_noise_scale", "noise_offset_random_strength", "multires_noise_iterations", "multires_noise_discount", "perlin_noise_offset_enabled", "spectral_noise_blend", "min_snr_gamma"]
+  "relatedConfigs": [
+    "adaptive_noise_scale",
+    "noise_offset_random_strength",
+    "multires_noise_iterations",
+    "multires_noise_discount",
+    "perlin_noise_offset_enabled",
+    "spectral_noise_blend",
+    "min_snr_gamma"
+  ]
 }

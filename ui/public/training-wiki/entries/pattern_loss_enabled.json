@@ -2,8 +2,16 @@
   "key": "pattern_loss_enabled",
   "title": "Pattern Loss (频带定制 Loss)",
   "category": "正则 / Loss",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora", "finetune"],
-  "layers": ["Loss 层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora",
+    "finetune"
+  ],
+  "layers": [
+    "Loss 层"
+  ],
   "standard": {
     "summary": "比 wavelet_loss 更精细的频率域 loss 控制——允许对不同频带使用不同的 loss 函数（如低频用 L2，高频用 Huber）。",
     "effect": "pattern_loss_ll_type 和 pattern_loss_high_type 分别指定低频和高频的 loss 函数。可以组合出 L2+Huber、L1+L2 等混合策略。",
@@ -17,5 +25,11 @@
     "tradeoffs": "pattern_loss_levels 控制 DWT 分解层数。",
     "codePath": "training_loop.py:pattern_loss() → per-band loss with configurable functions"
   },
-  "relatedConfigs": ["pattern_loss_levels", "pattern_loss_ll_type", "pattern_loss_high_type", "pattern_loss_high_weight", "wavelet_loss_enabled"]
+  "relatedConfigs": [
+    "pattern_loss_levels",
+    "pattern_loss_ll_type",
+    "pattern_loss_high_type",
+    "pattern_loss_high_weight",
+    "wavelet_loss_enabled"
+  ]
 }

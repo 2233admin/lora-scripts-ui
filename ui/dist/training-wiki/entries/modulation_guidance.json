@@ -2,8 +2,14 @@
   "key": "modulation_guidance",
   "title": "Modulation Guidance",
   "category": "训练 / Guidance",
-  "appliesTo": ["anima-lora", "newbie-lora"],
-  "layers": ["AdaLN", "Text Projection"],
+  "appliesTo": [
+    "anima-lora",
+    "newbie-lora"
+  ],
+  "layers": [
+    "AdaLN",
+    "Text Projection"
+  ],
   "standard": {
     "summary": "Modulation Guidance 用 pooled text 调制 AdaLN guidance。完整 pooled-text 路由现已接成默认关的 opt-in 技术储备(modulation_guidance_reserve_seam.py):一个零初始化的 PooledTextModulationProjector 把 prompt 池化向量投影成每个 AdaLN 站点的 shift/scale delta(gate 不动),并配套专用 distill loss + 推理投影 context + replay/metadata 契约。原有常量-bias 的 adaln_guidance 仍作为独立的 partial 路由共存。",
     "effect": "开启后,guidance 随 prompt 变化(不再只是常量 bias);默认关(method=none 或未发布 pooled text)时逐位 parity,不改变训练性能或默认输出。",
@@ -17,5 +23,8 @@
     "tradeoffs": "constant-bias 的 adaln_guidance 仍是独立 partial fallback,full 路由不静默替换它。蒸馏/引导质量需 curated 数据 + 真长训(操作员/用户判断)。",
     "codePath": "backend/core/lulynx_trainer/modulation_guidance_reserve_seam.py + modulation_guidance_reconciliation.py"
   },
-  "relatedConfigs": ["adaln_guidance", "modulation_guidance_enabled"]
+  "relatedConfigs": [
+    "adaln_guidance",
+    "modulation_guidance_enabled"
+  ]
 }

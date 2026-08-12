@@ -2,8 +2,17 @@
   "key": "training_type",
   "title": "训练类型",
   "category": "训练 / 基础",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora", "finetune", "flux-lora"],
-  "layers": ["训练控制层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora",
+    "finetune",
+    "flux-lora"
+  ],
+  "layers": [
+    "训练控制层"
+  ],
   "standard": {
     "summary": "training_type 决定训练的整体模式：'lora' 只训练 LoRA 适配器（冻结底模）；'finetune' 训练底模所有参数（全参微调）。",
     "effect": "LoRA 模式参数少、训练快、文件小；Finetune 模式参数多、质量天花板高但需要更多显存和时间。",
@@ -17,5 +26,10 @@
     "tradeoffs": "anima_full_finetune_phase 控制 Anima 全参微调的阶段策略。",
     "codePath": "trainer.py:training_type dispatch → LoRA adapter creation / full parameter training"
   },
-  "relatedConfigs": ["network_dim", "network_alpha", "network_module", "anima_full_finetune_phase"]
+  "relatedConfigs": [
+    "network_dim",
+    "network_alpha",
+    "network_module",
+    "anima_full_finetune_phase"
+  ]
 }

@@ -2,8 +2,17 @@
   "key": "weight_decay",
   "title": "权重衰减",
   "category": "优化器 / 正则",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora", "finetune", "flux-lora"],
-  "layers": ["优化器层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora",
+    "finetune",
+    "flux-lora"
+  ],
+  "layers": [
+    "优化器层"
+  ],
   "standard": {
     "summary": "AdamW 的 L2 正则化强度。每步对参数施加 weight_decay × param 的衰减，防止参数无限增长和过拟合。",
     "effect": "默认 0.01（AdamW 论文推荐值）。增大到 0.1 可以更强地正则化，减小到 0.001 减少约束。",
@@ -17,5 +26,9 @@
     "tradeoffs": "LoRA 的可训练参数少，weight decay 的影响比全参 finetune 更温和。",
     "codePath": "training_loop.py:_build_optimizer() → AdamW(weight_decay=...)"
   },
-  "relatedConfigs": ["optimizer_type", "learning_rate", "network_dropout"]
+  "relatedConfigs": [
+    "optimizer_type",
+    "learning_rate",
+    "network_dropout"
+  ]
 }

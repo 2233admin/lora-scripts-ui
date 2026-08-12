@@ -2,8 +2,16 @@
   "key": "ema_use_ema",
   "title": "EMA (指数移动平均)",
   "category": "训练 / 平滑",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora", "finetune"],
-  "layers": ["训练控制层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora",
+    "finetune"
+  ],
+  "layers": [
+    "训练控制层"
+  ],
   "standard": {
     "summary": "EMA 维护一个模型参数的指数移动平均副本，推理时使用 EMA 权重而非训练权重。减少训练噪声对最终模型的影响。",
     "effect": "ema_decay=0.999 时，EMA 权重约等于最近 1000 步的平均。推理更稳定，减少「最后几步的随机波动」。",
@@ -17,5 +25,11 @@
     "tradeoffs": "ema_reset_on_resume 控制 resume 时是否重置 EMA 状态。",
     "codePath": "core/training_components/ema.py:EMAStateTracker → per-step EMA update"
   },
-  "relatedConfigs": ["ema_decay", "ema_update_after_step", "ema_update_every", "ema_inv_gamma", "ema_power"]
+  "relatedConfigs": [
+    "ema_decay",
+    "ema_update_after_step",
+    "ema_update_every",
+    "ema_inv_gamma",
+    "ema_power"
+  ]
 }

@@ -2,8 +2,17 @@
   "key": "execution_core",
   "title": "执行核心",
   "category": "性能 / 执行",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora", "finetune", "flux-lora"],
-  "layers": ["计算层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora",
+    "finetune",
+    "flux-lora"
+  ],
+  "layers": [
+    "计算层"
+  ],
   "standard": {
     "summary": "选择训练的执行核心引擎。standard 使用标准 PyTorch 训练循环；turbo 启用 TurboCore 加速路径（实验性）；auto 自动选择。",
     "effect": "standard 最稳定。turbo 可能提供额外加速但仍处于实验阶段。auto 让系统根据硬件和配置自动选择。",
@@ -17,5 +26,9 @@
     "tradeoffs": "turbocore_allow_fallback=True 在 turbo 不可用时自动回退到 standard。",
     "codePath": "entry_train.py:execution_core dispatch → standard/turbo/auto"
   },
-  "relatedConfigs": ["turbocore_features", "turbocore_strict", "turbocore_allow_fallback"]
+  "relatedConfigs": [
+    "turbocore_features",
+    "turbocore_strict",
+    "turbocore_allow_fallback"
+  ]
 }

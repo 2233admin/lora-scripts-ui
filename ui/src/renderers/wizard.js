@@ -24,6 +24,7 @@ export function createWizardRenderer({ state, updateConfigValue, getFieldDefinit
       ['network_dim', 'Rank', c.network_dim],
       ['network_alpha', 'Alpha', c.network_alpha],
       ['lycoris_algo', 'LyCORIS算法', c.network_module === 'lycoris.kohya' ? c.lycoris_algo : ''],
+      ['full_matrix', 'LoKr 全矩阵', c.network_module === 'lycoris.kohya' && c.lycoris_algo === 'lokr' && c.full_matrix ? '开启' : ''],
       ['unet_lr', 'U-Net 学习率', c.unet_lr],
       ['optimizer_type', '优化器', c.optimizer_type],
       ['lr_scheduler', '调度器', schedulerOption(c.lr_scheduler).label],
@@ -46,13 +47,13 @@ export function createWizardRenderer({ state, updateConfigValue, getFieldDefinit
  previewHtml += '</table>';
 
     // 网络模块选项
-    var netModOptions = ['networks.lora', 'lycoris.kohya', 'networks.dylora', 'networks.oft'];
+    var netModOptions = ['networks.lora', 'lycoris.kohya', 'networks.oft'];
     var netModSelect = netModOptions.map(function(m) {
       return '<option value="' + m + '"' + (c.network_module === m ? ' selected' : '') + '>' + escapeHtml(m) + '</option>';
     }).join('');
 
     // LyCORIS 算法选项
-    var lycoAlgos = ['locon', 'loha', 'lokr', 'ia3', 'dylora', 'glora', 'diag-oft', 'boft'];
+    var lycoAlgos = ['locon', 'loha', 'lokr', 'ia3', 'full', 'diag-oft'];
     var lycoSelect = lycoAlgos.map(function(a) {
       return '<option value="' + a + '"' + (c.lycoris_algo=== a ? ' selected' : '') + '>' + a + '</option>';
     }).join('');
@@ -175,6 +176,9 @@ export function createWizardRenderer({ state, updateConfigValue, getFieldDefinit
                   <label style="font-size:0.82rem;color:var(--text-muted);">LoKr 系数</label>
            <input class="text-input" type="number" value="${c.lokr_factor === undefined ? -1 : c.lokr_factor}" min="-1" oninput="wizardSet('lokr_factor', this.value)" />
                 </div>
+                <div style="${lokrVisible};align-self:end;">
+                  ${boolSwitch('full_matrix', 'LoKr 全矩阵训练', !!c.full_matrix)}
+                </div>
               </div>
             </div>
 
@@ -245,16 +249,15 @@ export function createWizardRenderer({ state, updateConfigValue, getFieldDefinit
               </div>
             </div>
 
-            <!-- 8. 速度优化 -->
+            <!-- 8. 速度优化：attention 默认跟随启动环境，主路径不再堆叠互斥开关 -->
             <div class="wizard-field-group">
               <label class="wizard-field-label">⑧ 速度优化</label>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 16px;">
                 ${boolSwitch('cache_text_encoder_outputs', '缓存文本编码器输出', !!c.cache_text_encoder_outputs)}
-                ${boolSwitch('xformers', '启用 xformers', c.xformers !== false)}
-                ${boolSwitch('sdpa', '启用 SDPA', c.sdpa !== false)}
-                ${boolSwitch('sageattn', '启用 SageAttention', !!c.sageattn)}
-                ${boolSwitch('flashattn', '启用 FlashAttention2', !!c.flashattn)}
                 ${boolSwitch('cross_attn_fused_kv', '启用 Fused K/V', !!c.cross_attn_fused_kv)}
+              </div>
+              <div style="grid-column:1/-1;font-size:0.78rem;color:var(--text-muted);margin-top:6px;line-height:1.4;">
+                Attention 默认跟随启动器 runtime（Flash / Sage / SDPA 等）。需要手动覆盖时请到高级设置 / 性能专家模式。
               </div>
             </div>
 

@@ -2,8 +2,15 @@
   "key": "debiased_estimation_loss",
   "title": "去偏估计 Loss",
   "category": "正则 / Loss",
-  "appliesTo": ["sdxl-lora", "sd-lora", "anima-lora", "newbie-lora"],
-  "layers": ["Loss 层"],
+  "appliesTo": [
+    "sdxl-lora",
+    "sd-lora",
+    "anima-lora",
+    "newbie-lora"
+  ],
+  "layers": [
+    "Loss 层"
+  ],
   "standard": {
     "summary": "通过 1/(1-α_t) 加权来去除标准 diffusion loss 中的偏差，让模型对所有 timestep 的学习更加均衡。是 min_snr_gamma 的替代方案。",
     "effect": "在大 timestep（高噪声）端比 min_snr_gamma 更激进地提升权重。适合需要强去噪能力的场景。",
@@ -17,5 +24,9 @@
     "tradeoffs": "在大 timestep 端权重可能过大导致不稳定，需要观察 loss 曲线。",
     "codePath": "training_loop.py:debiased_weights = 1/(1 - alpha_t + 1e-8)"
   },
-  "relatedConfigs": ["min_snr_gamma", "adaptive_loss_weighting_enabled", "loss_type"]
+  "relatedConfigs": [
+    "min_snr_gamma",
+    "adaptive_loss_weighting_enabled",
+    "loss_type"
+  ]
 }

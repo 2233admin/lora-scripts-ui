@@ -1,0 +1,21 @@
+{
+  "key": "lpips_latent_enabled",
+  "title": "启用 LPIPS Latent 感知损失",
+  "category": "训练参数",
+  "appliesTo": [],
+  "layers": [],
+  "standard": {
+    "summary": "利用 DiT 中间层特征计算感知相似度，类似 LPIPS 但在 latent",
+    "effect": "",
+    "whenToUse": "不确定时先保持默认，小步数短测后再调。",
+    "avoidWhen": "与预检冲突或与其它互斥选项同时开启时。"
+  },
+  "advanced": {
+    "principle": "利用 DiT 中间层特征计算感知相似度，类似 LPIPS 但在 latent 空间操作。与 Multi-Scale 复用特征提取。默认关闭。",
+    "intervention": "",
+    "expectedImpact": "",
+    "tradeoffs": "",
+    "codePath": ""
+  },
+  "relatedConfigs": []
+}
